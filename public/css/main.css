@@ -1,0 +1,106 @@
+
+body {
+    /*min-height: 75rem;*/
+    padding-top: 4.5rem;
+    background-color: #f1f1f1;
+    align-items: center;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    height: 100%;
+    margin: 0;
+    z-index: 0;
+/*
+    text-align: center;
+    display: flex;
+    padding-top: 40px;
+    padding-bottom: 40px;
+*/
+
+}
+
+.ckeditor{
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+/*change*/
+.nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link {
+    color: #495057;
+    background-color: #f5f5f5;
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+.form-login {
+    max-width: 500px;
+    width: 100%;
+    margin: auto;/**/
+    padding: 25px;
+}
+
+.form-login .checkbox {
+    margin-top: 15px;
+    font-weight: 400;
+}
+
+.form-login .form-floating:focus-within {
+    z-index: 2;
+}
+.form-login input {
+    margin-top:5px;
+}
+
+.form-login input[type="email"] {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.form-login input[type="password"] {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.form-login button {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+.btn-circle{
+    border-radius: 32px;
+}
+.btn-pink{
+    background-color: hotpink;
+    color: white;
+}
+.btn-fill{
+    width: -webkit-fill-available;
+}
+.btn-deepskyblue{
+    background-color: deepskyblue;
+    color: white;
+}
+.link-nounderline{
+    text-decoration-line: none;
+}
+.left{
+    float: left;
+}
+.right{
+    float: right;
+}
+.list{
+    margin-top: 20px;
+    background-color: white;
+    padding: 30px 5px 30px 5px;
+    text-align: center;
+}
+.article{
+    margin-top: 20px;
+    background-color: white;
+    padding: 30px;
+    text-align: left;
+}
+.break {
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow: hidden;
+}

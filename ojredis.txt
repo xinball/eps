@@ -1,0 +1,283 @@
+HSET "basic" "status" "1"
+HSET "basic" "userbanner" "/img/banner/"
+HSET "basic" "name" "XBOJ"
+HSET "basic" "iplimit" "3"
+HSET "basic" "useravatar" "/img/avatar/"
+HSET "basic" "defaultavatar" "/bootstrap/icon/person-circle.svg"
+HSET "basic" "contestavatar" "/img/contest/"
+HSET "basic" "contestwidth" "64"
+HSET "basic" "judgeurl" "http://maythorn.top:12345"
+HSET "basic" "schoolname" "吉林大学"
+HSET "basic" "bannerwidth" "400"
+HSET "basic" "copyright" "<div class=\"container\" style=\"z-index:1000;position:relative;\">
+  <footer class=\"d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top\">
+    <div class=\"col-md-4 d-flex align-items-center\">
+      <a href=\"/\" title=\"XinBall\" class=\"text-decoration-none\" style=\"padding-right:5px;\"><img src=\"/img/icon.png\" width=\"24\"></a>
+      <span class=\"text-muted\">&copy; 2022 XinBall, Inc</span>
+    </div>
+
+    <ul class=\"nav col-md-4 justify-content-end list-unstyled d-flex\">
+      <li class=\"ms-3\"><a class=\"text-muted\" target=\"_blank\" href=\"https://github.com/xinball/oj\"><i class=\"bi bi-github\"></i></a></li>
+      <li class=\"ms-3\"><a class=\"text-muted\" href=\"#\"></a></li>
+      <li class=\"ms-3\"><a class=\"text-muted\" href=\"#\"></a></li>
+    </ul>
+  </footer>
+</div>"
+HSET "basic" "token" "zst000528"
+HSET "basic" "defaultbanner" "/img/banner/redchina.png"
+HSET "basic" "judgestatus" "{\"hostname\":\"59875a685633\",\"cpu\":100,\"cpu_core\":2,\"memory\":79.5,\"judger_version\":\"2.1.1\",\"action\":\"heartbeat\",\"service_url\":\"http:\\/\\/maythorn.top:12345\"}"
+HSET "basic" "register" "1"
+HSET "basic" "avatarwidth" "64"
+HSET "status" "listnum" "20"
+HSET "status" "stypes" "{
+\"u\":\"用户提交状态\",
+\"a\":\"状态测试\"
+}"
+HSET "status" "resultkey" "{
+\"all\":[\"a\",\"c\",\"w\",\"r\",\"t\",\"m\",\"s\",\"p\"],
+\"total\":[\"a\",\"c\",\"w\",\"r\",\"t\",\"m\",\"s\",\"p\",\"d\"]
+}"
+HSET "status" "adis" "{
+\"sum\":{\"label\":\"全部\",\"btn\":\"dark\",\"num\":\"badge bg-dark\",\"icon\":\"\"},
+\"p\":{\"label\":\"PENDING\",\"btn\":\"primary\",\"num\":\"badge bg-primary\",\"icon\":\"bi bi-hourglass-split\"},
+\"a\":{\"label\":\"AC\",\"btn\":\"success\",\"num\":\"badge bg-success\",\"icon\":\"bi bi-check-circle-fill\"},
+\"c\":{\"label\":\"CE\",\"btn\":\"danger\",\"num\":\"badge bg-danger\",\"icon\":\"bi bi-x-circle-fill\"},
+\"w\":{\"label\":\"WA\",\"btn\":\"danger\",\"num\":\"badge bg-danger\",\"icon\":\"bi bi-x-circle-fill\"},
+\"r\":{\"label\":\"RE\",\"btn\":\"secondary\",\"num\":\"badge bg-secondary\",\"icon\":\"bi bi-x-circle-fill\"},
+\"t\":{\"label\":\"TL\",\"btn\":\"secondary\",\"num\":\"badge bg-secondary\",\"icon\":\"bi bi-x-circle-fill\"},
+\"m\":{\"label\":\"ML\",\"btn\":\"secondary\",\"num\":\"badge bg-secondary\",\"icon\":\"bi bi-x-circle-fill\"},
+\"s\":{\"label\":\"SE\",\"btn\":\"danger\",\"num\":\"badge bg-danger\",\"icon\":\"bi bi-x-circle-fill\"}
+}"
+HSET "status" "langs" "{
+\"c\":\"C\",
+\"d\":\"C++\",
+\"j\":\"Java\",
+\"p\":\"Python2\",
+\"q\":\"Python3\",
+\"k\":\"Javascript\",
+\"h\":\"PHP\"
+}"
+HSET "status" "modes" "{
+\"C\":\"text/x-csrc\",
+\"C++\":\"text/x-java\",
+\"Java\":\"text/x-java\",
+\"Python2\":\"text/x-python\",
+\"Python3\":\"text/x-python\",
+\"Javascript\":\"text/javascript\",
+\"PHP\":\"text/x-php\"
+}"
+HSET "status" "langkey" "[\"c\",\"d\",\"j\",\"p\",\"q\",\"k\",\"h\"]"
+HSET "status" "results" "{
+\"a\":\"答案正确\",
+\"c\":\"编译错误\",
+\"w\":\"答案错误\",
+\"r\":\"运行时错误\",
+\"t\":\"运行超时\",
+\"m\":\"内存超限\",
+\"s\":\"系统错误\",
+\"p\":\"评测中\",
+\"d\":\"废弃\"
+}"
+HSET "status" "pagenum" "3"
+HSET "status" "resultcodes" "{
+\"0\":\"a\",
+\"-1\":\"w\",
+\"4\":\"r\",
+\"1\":\"t\",
+\"2\":\"t\",
+\"3\":\"m\",
+\"5\":\"s\"
+}"
+HSET "notice" "pagenum" "3"
+HSET "notice" "listnum" "20"
+HSET "notice" "adis" "{
+\"sum\":{\"label\":\"全部\",\"btn\":\"dark\",\"num\":\"badge bg-dark\"},
+\"s\":{\"label\":\"系统\",\"btn\":\"primary\",\"num\":\"badge bg-primary\"},
+\"u\":{\"label\":\"更新\",\"btn\":\"success\",\"num\":\"badge bg-success\"},
+\"k\":{\"label\":\"知识\",\"btn\":\"info\",\"num\":\"badge bg-info\"},
+\"h\":{\"label\":\"隐藏\",\"btn\":\"secondary\",\"num\":\"badge bg-secondary\"},
+\"d\":{\"label\":\"已删除\",\"btn\":\"danger\",\"num\":\"badge bg-danger\"}
+}"
+HSET "notice" "typekey" "{
+\"total\":[\"u\",\"s\",\"k\",\"h\",\"d\"],
+\"all\":[\"u\",\"s\",\"k\",\"h\"],
+\"d\":[\"d\"]
+}"
+HSET "notice" "type" "{
+\"s\":{\"label\":\"系统\",\"color\":\"primary\"},
+\"u\":{\"label\":\"更新\",\"color\":\"success\"},
+\"k\":{\"label\":\"知识\",\"color\":\"info\"},
+\"h\":{\"label\":\"隐藏\",\"color\":\"secondary\"},
+\"d\":{\"label\":\"删除\",\"color\":\"danger\"}
+}"
+HSET "user" "listnum" "20"
+HSET "user" "adminttl" "6000"
+HSET "user" "userloginttl" "600"
+HSET "user" "adis" "{
+\"sum\":{\"label\":\"全部\",\"btn\":\"dark\",\"num\":\"badge bg-dark\"},
+\"s\":{\"label\":\"管理\",\"btn\":\"primary\",\"num\":\"badge bg-primary\"},
+\"r\":{\"label\":\"普通\",\"btn\":\"success\",\"num\":\"badge bg-success\"},
+\"p\":{\"label\":\"比赛\",\"btn\":\"info\",\"num\":\"badge bg-info\"},
+\"a\":{\"label\":\"未激活\",\"btn\":\"warning\",\"num\":\"badge bg-warning\"},
+\"b\":{\"label\":\"封禁\",\"btn\":\"secondary\",\"num\":\"badge bg-secondary\"},
+\"d\":{\"label\":\"注销\",\"btn\":\"danger\",\"num\":\"badge bg-danger\"}
+}"
+HSET "user" "typekey" "{
+\"all\":[\"a\",\"r\",\"p\",\"s\",\"b\",\"d\"]
+}"
+HSET "user" "type" "{
+\"a\":\"未激活用户\",
+\"r\":\"普通用户\",
+\"p\":\"批量创建用户（用于比赛）\",
+\"s\":\"管理员\",
+\"b\":\"封禁用户\",
+\"d\":\"已注销用户\"
+}"
+HSET "user" "pagenum" "3"
+HSET "user" "activettl" "2"
+HSET "user" "forgetttl" "2"
+HSET "user" "adminloginttl" "12000"
+HSET "user" "userttl" "300"
+HSET "problem" "typekey" "{
+\"a\":[\"o\",\"h\",\"m\"],
+\"u\":[\"m\"],
+\"d\":[\"d\"]
+}"
+HSET "problem" "listnum" "10"
+HSET "problem" "type" "{
+\"o\":\"公开\",
+\"h\":\"隐藏\",
+\"m\":\"比赛题目\",
+\"d\":\"删除\"
+}"
+HSET "problem" "pagenum" "3"
+HSET "problem" "numlimit" "30"
+SET "token_1" "9a1828bdf74b298bd6001c5213adb40f"
+RPUSH "judging" "0"
+RPUSH "judging" "0"
+HSET "contest" "pagenum" "3"
+HSET "contest" "listnum" "20"
+HSET "contest" "usersource" "{
+\"c\":\"批量生成用户\",
+\"f\":\"从文件中导入用户\"
+}"
+HSET "contest" "ujdis" "{
+\"sum\":{\"label\":\"全部\",\"btn\":\"dark\",\"num\":\"badge bg-dark\"},
+\"o\":{\"label\":\"公开\",\"btn\":\"success\",\"num\":\"badge bg-success\"},
+\"s\":{\"label\":\"特定\",\"btn\":\"info\",\"num\":\"badge bg-info\"}
+}"
+HSET "contest" "adis" "{
+\"sum\":{\"label\":\"全部\",\"btn\":\"dark\",\"num\":\"badge bg-dark\"},
+\"a\":{\"label\":\"公开【申请】\",\"btn\":\"success position-relative\",\"num\":\"position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger\"},
+\"b\":{\"label\":\"特定【申请】\",\"btn\":\"info position-relative\",\"num\":\"position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger\"},
+\"o\":{\"label\":\"公开\",\"btn\":\"dark\",\"num\":\"badge bg-dark\"},
+\"s\":{\"label\":\"特定\",\"btn\":\"dark\",\"num\":\"badge bg-dark\"},
+\"c\":{\"label\":\"公开【未申】\",\"btn\":\"secondary\",\"num\":\"badge bg-secondary\"},
+\"e\":{\"label\":\"特定【未申】\",\"btn\":\"secondary\",\"num\":\"badge bg-secondary\"},
+\"d\":{\"label\":\"已删除\",\"btn\":\"danger\",\"num\":\"badge bg-danger\"}
+}"
+HSET "contest" "uidis" "{
+\"sum\":{\"label\":\"全部\",\"btn\":\"dark\",\"num\":\"badge bg-dark\"},
+\"c\":{\"label\":\"公开【未申请】\",\"btn\":\"primary\",\"num\":\"badge bg-primary\"},
+\"e\":{\"label\":\"特定【未申请】\",\"btn\":\"primary\",\"num\":\"badge bg-primary\"},
+\"a\":{\"label\":\"公开【已申请】\",\"btn\":\"secondary\",\"num\":\"badge bg-secondary\"},
+\"b\":{\"label\":\"特定【已申请】\",\"btn\":\"secondary\",\"num\":\"badge bg-secondary\"},
+\"o\":{\"label\":\"公开【已通过】\",\"btn\":\"success\",\"num\":\"badge bg-success\"},
+\"s\":{\"label\":\"特定【已通过】\",\"btn\":\"success\",\"num\":\"badge bg-success\"}
+}"
+HSET "contest" "typekey" "{
+\"all\":[\"c\",\"e\",\"a\",\"b\",\"o\",\"s\"],
+\"total\":[\"c\",\"e\",\"a\",\"b\",\"o\",\"s\",\"d\"],
+\"u\":[\"c\",\"e\"],
+\"b\":[\"a\",\"b\"],
+\"a\":[\"o\",\"s\"],
+\"o\":[\"c\",\"a\",\"o\"],
+\"s\":[\"e\",\"b\",\"s\"],
+\"d\":[\"d\"]
+}"
+HSET "contest" "type" "{
+\"c\":\"公开【不申请】\",
+\"e\":\"特定用户可见【不申请】\",
+\"a\":\"公开【已申请】\",
+\"b\":\"特定用户可见【已申请】\",
+\"o\":\"公开\",
+\"s\":\"特定用户可见\",
+\"d\":\"已删除\"
+}"
+RPUSH "submit" ""
+HSET "statement" "hours" "[
+[
+\"月落乌啼霜满天，江枫渔火对愁眠。姑苏城外寒山寺，夜半钟声到客船。——《枫桥夜泊》唐·张继\"
+],
+
+
+[
+\"飞来峰上千寻塔，闻说鸡鸣见日升。不畏浮云遮望眼，自缘身在最高层。——《登飞来峰》宋·王安石\"
+],
+
+
+[
+\"平旦起视事，亭午卧掩关。——《郡亭》唐·白居易\",
+\"三更灯火五更鸡，正是男儿读书时。黑发不知勤学早，白首方悔读书迟。——《劝学》唐·颜真卿\"
+],
+
+
+
+[
+\"日出东方隈，似从地底来。——《日出行》唐·李白\",
+\"青青园中葵，朝露待日曦。阳春布德泽，万物生光辉。——《长歌行》汉·汉乐府\"
+],
+
+
+[
+\"世界是你们的，也是我们的，但是归根结底还是你们的，你们青年人朝气蓬勃，正在兴旺时期，好像早晨八九点钟的太阳。希望寄托在你们身上。——近现代·毛泽东\"
+],
+
+
+[
+\"饭已茶三啜，隅中粥一盂。陶然咏皇化，安用东封书。——《粥罢》宋·程珌\",
+\"劝君莫惜金缕衣，劝君惜取少年时。花开堪折直须折，莫待无花空折枝。——《金缕衣》唐·杜秋娘\"
+],
+
+
+[
+\"锄禾日当午，汗滴禾下土。谁知盘中餐，粒粒皆辛苦。——《悯农》唐·李绅 \"
+],
+
+
+[
+\"客生闻吠犬，草茂有鸣蛙。日昳方炊饭，秋深始采茶。——《幽事绝句》宋·陆游\",
+\"足蒸暑土气，背灼炎天光。力尽不知热，但惜夏日长。——《观刈麦》唐·白居易\"
+],
+
+
+[
+\"觅得花千树，携来酒一壶。懒归兼拟宿，未醉岂劳扶。但惜春将晚，宁愁日渐晡。——《宿杜曲花下》唐·白居易\"
+],
+
+
+[
+\"向晚意不适，驱车登古原。夕阳无限好，只是近黄昏。——《乐游原》唐·李商隐\"
+],
+
+
+[
+\"日暮乡关何处是，烟波江上使人愁。——《黄鹤楼》唐·崔颢\"
+],
+
+
+[
+\"人定月胧明，香消枕簟清。翠屏遮烛影，红袖下帘声。坐久吟方罢，眠初梦未成。谁家教鹦鹉，故故语相惊。——《人定》唐·白居易\"
+]
+]"
+HSET "statement" "api" "https://v1.hitokoto.cn"
+HSET "statement" "time" "[
+\"青青园中葵，朝露待日曦。阳春布德泽，万物生光辉。——《长歌行》汉·汉乐府\",
+\"莫等闲，白了少年头，空悲切。——《满江红》宋·岳飞\",
+\"劝君莫惜金缕衣，劝君惜取少年时。花开堪折直须折，莫待无花空折枝。——《金缕衣》唐·杜秋娘\",
+\"明日复明日，明日何其多。我生待明日，万事成蹉跎。——《明日歌》明·文嘉\",
+\"多少事，从来急；天地转，光阴迫。一万年太久，只争朝夕。——《满江红·和郭沫若同志》近现代·毛泽东\",
+\"读书不觉已春深，一寸光阴一寸金。——《白鹿洞》唐·王贞白\",
+\"三更灯火五更鸡，正是男儿读书时。黑发不知勤学早，白首方悔读书迟。——《劝学》唐·颜真卿\",
+\"逆水行舟用力撑，一篙松劲退千寻。古云此日足可惜，吾辈更应惜秒阴。——《惜时》近现代·董必武\"
+]"
