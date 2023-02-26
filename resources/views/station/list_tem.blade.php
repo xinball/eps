@@ -21,7 +21,6 @@
             </div>
         </form>
     </x-offcanvas>
-
     <x-modal id='info' title="站点信息">
         <div v-if="station!==null" class="modal-body" style="word-wrap:break-word;word-break:break-all;over-flow:hidden;">
             <div class="modal-body" style="text-align:left;">
