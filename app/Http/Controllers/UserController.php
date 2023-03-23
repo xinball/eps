@@ -347,7 +347,7 @@ class UserController extends Controller
                             }elseif(!Func::isPwd($upwd,8,20)){
                                 $this->errMsg="新密码格式不合规范！";
                             }elseif(md5($password->auth . $upwd) === $password->pwd){
-                                $this->infoMsg="重置密码与原秘密相同！";
+                                $this->infoMsg="重置密码与原密码相同！";
                             }else{
                                 $auth=rand(1000,9999);
                                 $newpassword=[
