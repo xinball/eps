@@ -23,15 +23,15 @@
                 <label for="paramsatime">时间【筛选在该时间开放的站点】</label>
             </div>
             <div class="mb-3 col-12 form-floating">
-                <input type="text" id="paramsname" class="form-control" v-model="params.name" placeholder="站点名称">
-                <label for="paramsname">站点名称</label>
+                <input type="text" id="paramssname" class="form-control" v-model="params.sname" placeholder="站点名称">
+                <label for="paramssname">站点名称</label>
             </div>
             <div class="mb-3 col-12 form-floating">
-                <input type="text" id="paramsaddr" class="form-control" v-model="params.addr" placeholder="站点服务">
+                <input type="text" id="paramsaddr" class="form-control" v-model="params.addr" placeholder="站点地址">
                 <label for="paramsaddr">站点地址</label>
             </div>
             <div class="mb-3 col-12 form-floating">
-                <input type="text" id="paramsdes" class="form-control" v-model="params.des" placeholder="站点服务">
+                <input type="text" id="paramsdes" class="form-control" v-model="params.des" placeholder="站点描述">
                 <label for="paramsdes">站点描述</label>
             </div>
             <div class="mb-3 col-12 form-floating">
@@ -53,7 +53,7 @@
                     名称：@{{ station.sname }}<br>
                     地址：@{{ station.sinfo.addr }}<br>
                     时间：@{{ station.sinfo.time }}<br>
-                    预约人数：@{{ station.num }}<br>
+                    预约人数：@{{ station.anum }}<br>
                     状态：@{{ station.sstate==='o'?"开放":"关闭" }}<br>
                 </div>
             </div>
@@ -83,7 +83,7 @@
                     <h5 class="mb-0 text-truncate" :title="station.sname"> @{{ station.sname }} <span v-if="station.sinfo.p===true" class="badge bg-info">核酸</span><span v-if="station.sinfo.r===true" class="badge bg-warning">抗原</span><span v-if="station.sinfo.v===true" class="badge bg-success">疫苗</span></h5>
                     <h6 class="mb-0 opacity-75 text-truncate" :title="station.sinfo.des"><span v-if="station.sstate==='c'" class="badge bg-warning" style="font-size:x-small;">测试</span> @{{ station.sinfo.des }}</h6>
                     <span class="opacity-65 text-nowrap text-truncate mb-0" style="font-size: small;">
-                        <i class="bi bi-person-fill text-info"></i>@{{ station.num + " / " +(params.service==='r'?station.sinfo.rnum:(params.service==='v'?station.sinfo.vnum:station.sinfo.pnum)) }}
+                        <i class="bi bi-person-fill text-info"></i>@{{ getNumstr(index) }}
                         <i class="badge bg-dark">@{{ station.sinfo.addr }}</i>&nbsp;
                         <i class="bi bi-calendar-event text-info"></i> @{{ station.sinfo.time }}
                     </span>
@@ -203,18 +203,20 @@
                         service:"p",
                         city:"",
                         region:"",
+                        sname:"",
+                        des:"",
+                        time:"",
+                        addr:"",
                         order:"num",
                         lng:111,
                         lat:33,
-                        atime:"2023-03-06T00:00:00",
-                        time:"",
-                        addr:"",
+                        atime:toDatetime((parseInt(new Date().getTime()/86400000)+1)*86400000),
                     },
                     paramspre:{},
                     ordertypes:{
-                        num:"按剩余人数排序",
+                        num:"按可预约人数倒序",
+                        anum:"按预约人数正序",
                         len:"按距离排序",
-
                     },
                     services:{
                         p:"核酸检测服务",
@@ -228,6 +230,10 @@
                 this.getData();
             },
             methods:{
+                getNumstr(index){
+                    let num=(this.params.service==='r'?this.stations[index].sinfo.rnum:(this.params.service==='v'?this.stations[index].sinfo.vnum:this.stations[index].sinfo.pnum));
+                    return this.stations[index].anum + " / " +(num===-1?"无限制":num);
+                },
                 openinfo(index){
                     this.station = Object.assign({},this.stations[index]);
                 },

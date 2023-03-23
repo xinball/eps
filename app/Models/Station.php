@@ -43,10 +43,14 @@ class Station extends Model
         
         ->selectRaw('(select Convert(json_extract(sinfo, "$.'.$params['service'].'num")-count(appoint.aid),unsigned) from appoint where appoint.sid=station.sid and appoint.atype = ? and appoint.astate = "s" and TO_DAYS(appoint.atime) = TO_DAYS(?)  ) as num',[$params['service'],$params['atime']])
 
+        ->selectRaw('(select count(appoint.aid) from appoint where appoint.sid=station.sid and appoint.atype = ? and appoint.astate = "s" and TO_DAYS(appoint.atime) = TO_DAYS(?)  ) as anum',[$params['service'],$params['atime']])
+
         ->where($where);
         $orderPara = $params['order']??"";
         if($orderPara==="len"||$orderPara==="num"){
             $sql=$sql->orderByDesc($orderPara)->orderByDesc('station.sid');
+        }elseif($orderPara==="anum"){
+            $sql=$sql->orderBy($orderPara)->orderByDesc('station.sid');
         }else{
             $sql=$sql->orderByDesc('station.sid');
         }

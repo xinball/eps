@@ -128,9 +128,13 @@ class UserController extends Controller
                 $code=rand(100000,999999);
                 $activeExpire=3600*24*$activettl;
                 Redis::setex("active_".$saveduser->uid,$activeExpire,$code);
-                Func::sendMail($user->uemail,$this->config_basic['name']."-用户激活",
-                    "激活链接：<a href='".config('var.ua')."?uid=$user->uid&code=$code'>激活</a>"
-                    ."<br/>过期时间：".date("Y-m-d H:i:s",$activeExpire+time()));
+                Func::sendUserMail($user,[
+                    'subject'=>$this->config_basic['name']."-用户激活",
+                    'text'=>"激活",
+                    'link'=>config('var.ua')."?uid=$user->uid&code=$code",
+                    'expire'=>date("Y-m-d H:i:s",$activeExpire+time())
+                ]);
+
 
                 // $email = new Email;
                 // $email->to = $uemail;
@@ -236,9 +240,12 @@ class UserController extends Controller
                     $this->successMsg="请进入您的邮箱 <strong>".$user->uemail."</strong> 激活账号吧！<br/>注意！链接将于".$this->config_user['activettl']."日后过期，请及时激活！";
                     $code=rand(100000,999999);
                     $activeExpire=3600*24*$this->config_user['activettl'];
-                    Func::sendMail($user->uemail,$this->config_basic['name']."-用户激活",
-                        "激活链接：<a href='".config('var.ua')."?uid=$user->uid&code=$code'>激活</a>"
-                        ."<br/>过期时间：".date("Y-m-d H:i:s",$activeExpire+time()));
+                    Func::sendUserMail($user,[
+                        'subject'=>$this->config_basic['name']."-用户激活",
+                        'text'=>"激活",
+                        'link'=>config('var.ua')."?uid=$user->uid&code=$code",
+                        'expire'=>date("Y-m-d H:i:s",$activeExpire+time())
+                    ]);
                     Redis::setex("active_".$user->uid,$activeExpire,$code);
                 }
             }else{
@@ -308,9 +315,13 @@ class UserController extends Controller
                     $code = rand(100000, 999999);
                     $forgetExpire = time() + 3600 * 24 * $this->config_user['forgetttl'];
                     Redis::setex("forget_" . $user->uid, $forgetExpire - time(), $code);
-                    Func::sendMail($user->uemail, $this->config_basic['name'] . "-找回密码",
-                        "密码重置链接：<a href='" . config('var.uf') . "?uid=$user->uid&code=$code'>重置密码</a>"
-                        . "<br/>过期时间：" . date("Y-m-d H:i:s", $forgetExpire));
+                    Func::sendUserMail($user,[
+                        'subject'=>$this->config_basic['name'] . "-找回密码",
+                        'text'=>"重置密码",
+                        'link'=>config('var.uf') . "?uid=$user->uid&code=$code",
+                        'expire'=>date("Y-m-d H:i:s", $forgetExpire)
+                    ]);
+
                 }
             }else{
                 $this->errMsg = "用户". $uname . "不存在，无法激活！";

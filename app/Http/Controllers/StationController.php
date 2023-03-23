@@ -29,8 +29,10 @@ class StationController extends Controller
         $where[]=['sstate','=','o'];
         foreach ($params as $key=>$v){
             if($v!==""&&$v!==null){
-                if($key==="addr"||$key==="time"){
+                if($key==="addr"||$key==="des"||$key==="time"){
                     $where[]=['sinfo->'.$key,'like','%'.$v.'%'];
+                }elseif($key==="sname"){
+                    $where[]=[$key,'like','%'.$v.'%'];
                 }elseif($key==="city_id"||$key==="region_id"){
                     $where[]=[$key,'=',$v];
                 }elseif($key==="atime"){
@@ -77,17 +79,21 @@ class StationController extends Controller
         }
         $params=$request->all();
         $where=[];
-        if(DB::table("admin_area")->where("uid",$this->ladmin->uid))
         foreach ($params as $key=>$v){
             if($v!==""&&$v!==null){
-                if($key==="addr"||$key==="time"){
+                if($key==="addr"||$key==="des"||$key==="time"){
                     $where[]=['sinfo->'.$key,'like','%'.$v.'%'];
+                }elseif($key==="sname"){
+                    $where[]=[$key,'like','%'.$v.'%'];
                 }elseif($key==="sstate"||$key==="city_id"||$key==="region_id"){
                     $where[]=[$key,'=',$v];
                 }elseif($key==="atime"){
-                    if(!Func::checkNextDay($v)){
-                        //$params['atime']=date("Y-m-d",strtotime("+1 day"));
-                    }
+                    // if(!Func::checkNextDay($v)){
+                    //     //$params['atime']=date("Y-m-d",strtotime("+1 day"));
+                    //     // $this->infoMsg="请选择未来七天内的日期！";
+                    //     // $this->getResult();
+                    //     // return $this->result->toJson();
+                    // }
                 }elseif($key==="service"){
                     if(in_array($v,$this->config_station['typekey']['total'])){
                         $where[]=['sinfo->'.$v,'=',true];
@@ -98,6 +104,10 @@ class StationController extends Controller
                     }
                 }
             }
+        }
+        $sids=[];
+        if(1){}
+        if(DB::table("admin_area")->where("uid",$this->ladmin->uid)){
         }
         $sql=Station::getStationlist($where,$params);
         

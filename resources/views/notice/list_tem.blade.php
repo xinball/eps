@@ -1,6 +1,6 @@
 <!--main就是整个公告栏这一大块-->
 <main id="noticelist" class="container list shadow">
-<!--侧边栏-->    
+<!--侧边栏-->
 <x-offcanvas>
         <form>
             <div class="mb-3 col-12">
@@ -29,9 +29,9 @@
                 <input type="datetime-local" class="form-control" v-model="params.nend" id="paramsnend" placeholder="结束时间范围">
                 <label for="paramsnend">结束时间范围</label>
             </div>
-            @if (isset($ladmin))
-            @else
-            @endif
+@if (isset($utype)&&$utype==="a")
+@else
+@endif
             <div class="mb-3 col-12 form-floating">
                 <select class="form-select" v-model="params.type" id="paramstype">
                     <option v-for="(ntype,index) in ntypes" :key="index" :label="ntype.label" :value="index">@{{ ntype.label }}</option>
@@ -46,13 +46,13 @@
 
     <!--下面是公告管理页面上方的类型选择按钮-->
 
-    @if (isset($ladmin))
+@if (isset($utype)&&$utype==="a")
     <div class="">
         <button v-for="(dis,index) in adis" style="margin-left:10px;" @click="settype(index)" class="btn" :class="[params.type===index?'btn-'+dis.btn:'btn-outline-'+dis.btn]" :disabled="data.num[index]===0">
             @{{ dis.label }} <span v-if="data.num[index]>0" :class="dis.num">@{{ data.num[index] }}</span>
         </button>
     </div>
-    @endif
+@endif
     
     <!--有公告，length代表公告的条数-->
     <div v-if="notices.length>0">
@@ -71,12 +71,12 @@
         <!--将公告栏划分-->
         <div class="item thead-dark thead">
             <div class="row">
-                @if (isset($ladmin))
+@if (isset($utype)&&$utype==="a")
                 <div class="col-1" @click="checkall"><a class="btn btn-outline-dark"><i class="bi bi-check-lg"></i></a></div>
                 <div class="col-11 text-center row">
-                @else
+@else
                 <div class="col-12 text-center row">
-                @endif
+@endif
                 <!--col总共12，用来分大小-->
                     <div class="d-none d-sm-block col-sm-1">#</div>
                     <div class="col-6 col-md-5">标题</div>
@@ -88,15 +88,15 @@
             </div>
         </div>
         <div class="row item list-group-item list-group-item-action " v-for="(notice,index) in notices" style="display: flex;" :class="{'active':check.includes(notice.nid)}"  :key="index" >
-        @if (isset($ladmin))
+@if (isset($utype)&&$utype==="a")
             <div class="col-1" >
                 <input type="checkbox" :value="notice.nid" v-model="check" >
                 <a v-if="notice.ntype!=='d'" class="btn btn-danger" @click="del(index)" style="font-size:xx-small;"><i class="bi bi-trash3-fill"></i></a>
                 <a v-else class="btn btn-success" @click="recover(index)" style="font-size:xx-small;" ><i class="bi bi-arrow-repeat"></i></a>
             </div>
-        @endif
+@endif
             <div data-bs-toggle="modal" :data-bs-index="index" 
-@if (isset($ladmin))
+@if (isset($utype)&&$utype==="a")
 class="row text-center col-11" title="点击编辑公告信息" data-bs-target="#alter" :data-bs-nid="notice.nid"
 @else
 class="row text-center col-12" title="点击查看公告信息" data-bs-target="#info" @click="openinfo($event)"
@@ -143,13 +143,13 @@ class="row text-center col-12" title="点击查看公告信息" data-bs-target="
                 notices:[],
                 notice:null,
                 check:[],
-                @if (isset($ladmin))
+@if (isset($utype)&&$utype==="a")
                 url:"{{ config('var.anl') }}",
                 typekey:{!! json_encode($config_notice['typekey']['total']) !!},
-                @else
+@else
                 url:"{{ config('var.nl') }}",
                 typekey:{!! json_encode($config_notice['typekey']['all']) !!},
-                @endif
+@endif
                 ntypes:{!! json_encode($config_notice['type']) !!},
                 adis:{!! json_encode($config_notice['adis'],JSON_UNESCAPED_UNICODE) !!},
                 paramspre:{

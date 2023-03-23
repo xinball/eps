@@ -152,7 +152,7 @@ function toDatetime(datestr){
     const y=date.getFullYear();
     const m=date.getMonth()+1;
     const d=date.getDate();
-    return y+"-"+(m<10?"0"+m:m)+"-"+(d<10?"0"+d:d)+"T"+date.toTimeString().substr(0,8);
+    return y+"-"+(m<10?"0"+m:m)+"-"+(d<10?"0"+d:d)+"T"+(date.toTimeString()).substring(0,8);
 }
 function url2json(url){
     let params={};
@@ -162,7 +162,7 @@ function url2json(url){
         for(item of arr){
             if(item.includes('=')){
                 tem=item.split('=');
-                params[tem[0]]=('1' in tem ? tem[1]:null);
+                params[tem[0]]=decodeURI('1' in tem ? tem[1]:null);
             }
         }
     }
@@ -179,7 +179,7 @@ function setParams(params){
 function json2url(json){
     let url="";
     for(i in json){
-        url+=i+"="+json[i]+"&";
+        url+=i+"="+encodeURI(json[i])+"&";
     }
     if(url.length>0)
         url[url.length]='';
