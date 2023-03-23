@@ -31,4 +31,5 @@ class Appoint extends Model
     //
     protected $table="appoint";
     protected $primaryKey="aid";
+    public $timestamps=false;
 }

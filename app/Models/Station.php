@@ -34,5 +34,22 @@ class Station extends Model
 {
     protected $table = "station";
     protected $primaryKey = "sid";
+    public $timestamps=false;
     //
+    static public function getStationlist($where,$params){
+        $sql = Station::distinct()->select("sid","sname","sstate","city_id","region_id","slng","slat","sinfo","stime")
+        
+        ->selectRaw('round(ST_Distance_Sphere(point(?,?),point(slng,slat))) as len',[$params['lng'],$params['lat']])
+        
+        ->selectRaw('(select Convert(json_extract(sinfo, "$.'.$params['service'].'num")-count(appoint.aid),unsigned) from appoint where appoint.sid=station.sid and appoint.atype = ? and appoint.astate = "s" and TO_DAYS(appoint.atime) = TO_DAYS(?)  ) as num',[$params['service'],$params['atime']])
+
+        ->where($where);
+        $orderPara = $params['order']??"";
+        if($orderPara==="len"||$orderPara==="num"){
+            $sql=$sql->orderByDesc($orderPara)->orderByDesc('station.sid');
+        }else{
+            $sql=$sql->orderByDesc('station.sid');
+        }
+        return $sql;
+    }
 }

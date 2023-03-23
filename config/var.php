@@ -1,12 +1,5 @@
 <?php
-/*
- * @Author: your name
- * @Date: 2022-03-03 02:53:31
- * @LastEditTime: 2022-06-01 17:29:39
- * @LastEditors: XinBall
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: /oj/config/var.php
- */
+
 
  //路由变量配置                            //相当于别名
 return [
@@ -51,6 +44,9 @@ return [
     'ala'=>config('app.url')."/service/admin/location/alter/",
     'alr'=>config('app.url')."/service/admin/location/recover/",
 
+    'sga'=>config('app.url')."/service/system/getaddr/",
+    'sla'=>config('app.url')."/service/system/getaddrlist",
+
     'apg'=>config('app.url')."/service/appoint/get/",
     'apl'=>config('app.url')."/service/appoint/getlist",
     'apa'=>config('app.url')."/service/appoint/approve/",
@@ -73,8 +69,8 @@ return [
     
     'pg'=>config('app.url')."/service/appoint/get/",
     'pl'=>config('app.url')."/service/appoint/getlist",
-    'pd'=>config('app.url')."/service/appoint/del/",
-    'pr'=>config('app.url')."/service/appoint/recover",
+    //'pd'=>config('app.url')."/service/appoint/del/",
+    //'pr'=>config('app.url')."/service/appoint/recover",
     'pi'=>config('app.url')."/service/appoint/insert/",
     'pc'=>config('app.url')."/service/appoint/cancel/",
     'pa'=>config('app.url')."/service/appoint/apply/",

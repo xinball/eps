@@ -20,14 +20,14 @@ class NoticeController extends Controller
     //
     public function indexview(Request $request,$nid){
         if($this->ladmin!==null){                                                  //管理员查看某公告
+            //重点在aget的目标地址
+            //管理员在普通页面看公告也是跟用户一样的，只是在管理页面可以改
             return view('notice.index')->with('nactive',true)->with('result',$this->aget($request,$nid));
         }
+        //重点在get的目标地址
         return view('notice.index')->with('nactive',true)->with('result',$this->get($request,$nid));// 用户查看某公告
     }
     public function listview(Request $request){         //显示消息列表
-        // if($this->ladmin!==null){
-        //     return view('notice.list')->with('nactive',true)->with('utype','a');
-        // }
         return view('notice.list')->with('nactive',true);
     }
 
@@ -54,6 +54,7 @@ class NoticeController extends Controller
     //用户查看某公告
     public function get(Request $request,$nid){
         $notice=Notice::where('nid',$nid)->first();
+        //转到/notice/{nid}
         $this->url="/notice";
         if($notice!==null){
             if($notice->ntype==='h'){
@@ -120,6 +121,7 @@ class NoticeController extends Controller
 
     //管理员查找某信息
     public function aget(Request $request,$nid){
+        //目标地址为/admin/notice/
         $this->url="/admin/notice";
         if($this->ladmin===null){                      //检测管理员身份
             $this->errMsg="您没有权限获取该公告信息！";

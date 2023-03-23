@@ -29,4 +29,5 @@ class Report extends Model
     //
     protected $table="report";
     protected $primaryKey="rid";
+    public $timestamps=false;
 }

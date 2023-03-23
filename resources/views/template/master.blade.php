@@ -276,6 +276,7 @@
   <!--整个上方的索引框-->
 <nav id="navapp" class="navbar navbar-expand-lg navbar-light fixed-top shadow" style="background-color: white;">
     <div class="container-fluid">
+        <!--侧边栏-->
         <h5 class="btn btn-light mb-0" style="font-weight: bold;" data-bs-toggle="offcanvas" href="#offcanvas" role="button" aria-controls="offcanvas">{{ $config_basic['name'] }} <i class="bi bi-search"></i></h5>
         <!--搜索框-->
         <form class="d-flex" action="/search" method="get">
@@ -320,6 +321,7 @@
                         <li><a class="dropdown-item" target="_blank" href="/admin/user"><i class="bi bi-person-fill-gear"></i> 管理用户</a></li>
                         <li><a class="dropdown-item" target="_blank" href="/admin/notice"><i class="bi bi-easel2-fill"></i> 管理公告</a></li>
                         <li><a class="dropdown-item" target="_blank" href="/admin/setting"><i class="bi bi-gear-fill"></i> 网站配置</a></li>
+                        <!--分割线-->
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" target="_blank" href="/user/'.$ladmin['uid'].'"><i class="bi bi-house-fill"></i> 个人空间</a></li>
                         <li><a class="dropdown-item" href="#" @click="alogout"><i class="bi bi-box-arrow-right"></i> 退出登录</a></li>
@@ -340,7 +342,7 @@
                         <li><a class="dropdown-item" target="_blank" href="/user/report"><i class="bi bi-clipboard-fill"></i> 报备管理</a></li>
                         <li><a class="dropdown-item" target="_blank" href="/user/feedback"><i class="bi bi-exclamation-octagon-fill"></i> 反馈</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" target="_blank" href="/user/'.$luser['uid'].'"><i class="bi bi-house-fill"></i> 个人空间</a></li>
+                        <li><a class="dropdown-item" target="_blank" href="/user/'.$luser->uid.'"><i class="bi bi-house-fill"></i> 个人空间</a></li>
                         <li><a class="dropdown-item" href="#" @click="ulogout"><i class="bi bi-box-arrow-right"></i> 退出登录</a></li>
                         <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#login"><i class="bi bi-box-arrow-in-right"></i> 登录其他用户</a></li>
                     </ul>
@@ -513,6 +515,7 @@
     });
 
 
+    //管理员登录
     const aloginapp=Vue.createApp({
         data() {
             return {
@@ -523,6 +526,7 @@
                 avatar:"/img/icon.png"
             }
         },
+
         methods:{
             getavatar(){
                 let that=this;

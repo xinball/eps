@@ -85,7 +85,7 @@ class Func
         return (bool)preg_match($pattern, $pwd);
     }
 
-
+    //是否是数字
     static public function isNum($num,$min=2,$max=10){
         $pattern="/^[0-9]{".$min.",".$max."}$/";
         return (bool)preg_match($pattern, $num);
@@ -94,6 +94,8 @@ class Func
         $pattern="/^[\x{4e00}-\x{9fa5}A-Za-z0-9_]{".$min.",".$max."}$/u";
         return (bool)preg_match($pattern, $nick);
     }
+
+    //是否是号码
     static public function isTel($nick){
         $pattern="/^[ 0-9-]{4,20}$/u";
         return (bool)preg_match($pattern, $nick);
@@ -119,15 +121,15 @@ class Func
         return $default."?".filectime(public_path($default));
     }
 
-
-    static public function getCAvatar($cid=null){
-        if($cid){
-            $href=($basicConfig['contestavatar'] ?? "/img/contest/").$cid.".png";
+    //得到站点的头像，没有就用默认头像
+    static public function getSAvatar($sid=null){
+        if($sid){
+            $href=($basicConfig['stationavatar'] ?? "/img/station/").$sid.".png";
             if(is_file(public_path($href))){
                 return url('/').$href."?".filectime(public_path($href));
             }
         }
-        return url('/bootstrap/icon/trophy-fill-user.svg');
+        return url('/bootstrap/icon/geo.svg');
     }
 
 
@@ -144,7 +146,7 @@ class Func
         return $default."?".filectime(public_path($default));
     }
 
-    //得到用户的IP
+    //得到登录地址的IP
     static public function getIp() {
         $ch = curl_init('http://www.ip138.com/ip2city.asp');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -175,7 +177,25 @@ class Func
         }
     }
 
-    //？？？
+    static public function checkNextDay($v){
+        return (strtotime($v)>=strtotime(date("Y-m-d"),time())+86400)&&(strtotime($v)<=strtotime(date("Y-m-d"),time())+691200);
+    }
+    static public function checkDay($v,$wtime){
+        $val=strtotime($v);
+        $dtime = $wtime[date("w",$val)];
+        if(count($dtime)===0){
+            return false;
+        }
+        $val=($val+28800)%86400;
+        foreach($dtime as $item){
+            if($item['start']<=$val&&$item['end']>=$val){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //
     static public function getStatement(){
         while(1){
             $rand=rand(1,100);

@@ -35,7 +35,7 @@ class States extends Model
     protected $table="states";
     protected $primaryKey="id";
     static public function getInfo($id,$name,$cname,$code){
-        $sql=(new States())->join('countries','countries.id','=','states.country_id')->join('continents','continents.id','=','countries.continent_id')->select('continents.id AS zid','continents.name AS zname','continents.cname AS zcname','continents.lower_name AS zlname','countries.id AS gid','countries.code AS gcode','countries.name AS gname','countries.full_name AS gfname','countries.cname AS gcname','countries.full_cname AS gfcname','countries.lower_name AS glname','countries.remark AS gremark','countries.info AS ginfo','states.id AS sid','states.code AS scode','states.name AS sname','states.cname AS scname','states.lower_name AS slname')->where('states.id',$id);
+        $sql=States::join('countries','countries.id','=','states.country_id')->join('continents','continents.id','=','countries.continent_id')->select('continents.id AS zid','continents.name AS zname','continents.cname AS zcname','continents.lower_name AS zlname','countries.id AS gid','countries.code AS gcode','countries.name AS gname','countries.full_name AS gfname','countries.cname AS gcname','countries.full_cname AS gfcname','countries.lower_name AS glname','countries.remark AS gremark','countries.info AS ginfo','states.id AS sid','states.code AS scode','states.name AS sname','states.cname AS scname','states.lower_name AS slname')->where('states.id',$id);
         if(Func::Length($name)>0)
             $sql=$sql->orwhere('states.lower_name','like','%'.$name.'%');
         if(Func::Length($cname)>0)
@@ -45,7 +45,7 @@ class States extends Model
         return $sql->get();
     }
     static public function getStatesByGid($country_id){
-        return (new States())->where('country_id',$country_id)->get();
+        return States::where('country_id',$country_id)->get();
     }
     
 }

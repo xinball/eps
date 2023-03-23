@@ -1,4 +1,6 @@
 <main id="userlist" class="container list shadow">
+
+    <!--用户筛选的侧边框-->
     <x-offcanvas>
         <form>
             <div class="mb-3 col-12">
@@ -79,6 +81,8 @@
         </button>
     </div> --}}
     @endif
+
+    <!--用户板块显示-->
     <div v-if="users.length>0">
         <div class="item thead-dark thead">
             <div class="row">
@@ -90,6 +94,7 @@
                 <div class="d-none d-md-block col-2">注册时间</div>
             </div>
         </div>
+        <!--显示出来-->
         <div class="item text-center list-group-item-action" v-for="(user,index) in users" :key="index" data-bs-toggle="modal" :data-bs-index="index" title="点击编辑用户信息" data-bs-target="#alter" :data-bs-nid="user.uid">
             <div class="row">
                 <div class="d-none d-sm-block col-sm-1 thead" >@{{ user.uid }}</div>
@@ -104,7 +109,9 @@
                 <div class="d-none d-md-block col-2" style="vertical-align: middle;align-self:center;font-size:x-small;">@{{ user.utime }}</div>
             </div>
         </div>
-        
+        <!--分页-->
+
+
         @include('template.paginator')
     </div>
     <p v-if="users.length===0">抱歉，查询不到任何用户！</p>
@@ -171,13 +178,16 @@
             }
         },
         mounted(){
+            //过滤器
             filterTypes(this.ntypes,this.typekey);
+            //初始化分页
             initpaginator(this);
             this.getData();
         },
         computed:{
         },
         methods:{
+            //复位
             reset(){
                 this.params=this.paramspre={
                     page:"1",

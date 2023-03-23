@@ -39,10 +39,10 @@ class Countries extends Model
     protected $table="countries";
     protected $primaryKey="id";
     static public function getCountriesByZid($continent_id){
-        return (new Countries())->where('continent_id',$continent_id)->get();
+        return Countries::where('continent_id',$continent_id)->get();
     }
     static public function getInfo($id,$name,$cname,$fname,$fcname,$code){
-        $sql=(new Countries())->join('continents','continents.id','=','countries.continent_id')->select('continents.id AS zid','continents.name AS zname','continents.cname AS zcname','continents.lower_name AS zlname','countries.id AS gid','countries.code AS gcode','countries.name AS gname','countries.full_name AS gfname','countries.cname AS gcname','countries.full_cname AS gfcname','countries.lower_name AS glname','countries.remark AS gremark','countries.info AS ginfo')->where('countries.id',$id);
+        $sql=Countries::join('continents','continents.id','=','countries.continent_id')->select('continents.id AS zid','continents.name AS zname','continents.cname AS zcname','continents.lower_name AS zlname','countries.id AS gid','countries.code AS gcode','countries.name AS gname','countries.full_name AS gfname','countries.cname AS gcname','countries.full_cname AS gfcname','countries.lower_name AS glname','countries.remark AS gremark','countries.info AS ginfo')->where('countries.id',$id);
         if(Func::Length($name)>0)
             $sql=$sql->orwhere('countries.name','like','%'.$name.'%');
         if(Func::Length($cname)>0)

@@ -59,11 +59,10 @@ Route::get('/admin/user','AdminController@userview');
 
 //服务，不显示
 Route::group(['prefix'=>'service'],function (){
-    Route::group(['prefix'=>'address'],function (){
-        Route::get('/get','AddressController@get');
-
-        Route::get('/getlist','AddressController@getlist');
-
+    Route::group(['prefix'=>'system'],function (){
+        Route::get('/getaddr','SystemController@getaddr');
+        Route::get('/getaddrlist','SystemController@getaddrlist');
+        Route::get('/ping','SystemController@ping');
     });
     Route::group(['prefix'=>'user'],function (){
         Route::post('/login','UserController@login');
@@ -97,7 +96,7 @@ Route::group(['prefix'=>'service'],function (){
             Route::get('/del/{nid}','NoticeController@del');
             Route::post('/insert','NoticeController@insert');
             Route::post('/alter/{nid}','NoticeController@alter');
-            Route::post('/recover/{nid}','NoticeController@recover');
+            Route::get('/recover/{nid}','NoticeController@recover');
         });
         Route::group(['prefix'=>'station'],function (){
             Route::get('/get/{sid}','StationController@aget');
@@ -119,13 +118,13 @@ Route::group(['prefix'=>'service'],function (){
             Route::get('/get/{aid}','AppointController@aget');
             Route::get('/getlist','AppointController@agetlist');
             Route::get('/approve/{aid}','AppointController@approve');
-            Route::get('/refuse/{aid}','AppointController@refuse');
+            Route::post('/refuse/{aid}','AppointController@refuse');
         });
         Route::group(['prefix'=>'report'],function (){
             Route::get('/get/{rid}','ReportController@aget');
             Route::get('/getlist','ReportController@agetlist');
             Route::get('/approve/{rid}','ReportController@approve');
-            Route::get('/refuse/{rid}','ReportController@refuse');
+            Route::post('/refuse/{rid}','ReportController@refuse');
         });
     });
     Route::group(['prefix'=>'notice'],function (){
@@ -146,7 +145,8 @@ Route::group(['prefix'=>'service'],function (){
         Route::get('/del/{aid}','AppointController@del');
         Route::get('/recover/{aid}','AppointController@recover');
         Route::post('/insert','AppointController@insert');
-        Route::get('/cancel/{aid}','AppointController@cancel');
+        Route::post('/alter','AppointController@alter');
+        Route::post('/cancel/{aid}','AppointController@cancel');
         Route::get('/apply/{aid}','AppointController@apply');
     });
     Route::group(['prefix'=>'report'],function (){
@@ -155,7 +155,8 @@ Route::group(['prefix'=>'service'],function (){
         Route::get('/del/{rid}','ReportController@del');
         Route::get('/recover/{rid}','ReportController@recover');
         Route::post('/insert','ReportController@insert');
-        Route::get('/cancel/{rid}','ReportController@cancel');
+        Route::post('/alter','ReportController@alter');
+        Route::post('/cancel/{rid}','ReportController@cancel');
         Route::get('/apply/{rid}','ReportController@apply');
     });
 

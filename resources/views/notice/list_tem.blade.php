@@ -29,19 +29,24 @@
                 <input type="datetime-local" class="form-control" v-model="params.nend" id="paramsnend" placeholder="结束时间范围">
                 <label for="paramsnend">结束时间范围</label>
             </div>
-            @if (isset($utype)&&$utype==="a")
+            @if (isset($ladmin))
             @else
             @endif
             <div class="mb-3 col-12 form-floating">
                 <select class="form-select" v-model="params.type" id="paramstype">
                     <option v-for="(ntype,index) in ntypes" :key="index" :label="ntype.label" :value="index">@{{ ntype.label }}</option>
+                    
                     <option value="0" label="未选择公告类型">未选择公告类型</option>
                 </select>
                 <label for="paramstype">公告类型</label>
             </div>
         </form>    
     </x-offcanvas>
-    @if (isset($utype)&&$utype==="a")
+
+
+    <!--下面是公告管理页面上方的类型选择按钮-->
+
+    @if (isset($ladmin))
     <div class="">
         <button v-for="(dis,index) in adis" style="margin-left:10px;" @click="settype(index)" class="btn" :class="[params.type===index?'btn-'+dis.btn:'btn-outline-'+dis.btn]" :disabled="data.num[index]===0">
             @{{ dis.label }} <span v-if="data.num[index]>0" :class="dis.num">@{{ data.num[index] }}</span>
@@ -66,25 +71,40 @@
         <!--将公告栏划分-->
         <div class="item thead-dark thead">
             <div class="row">
+                @if (isset($ladmin))
+                <div class="col-1" @click="checkall"><a class="btn btn-outline-dark"><i class="bi bi-check-lg"></i></a></div>
+                <div class="col-11 text-center row">
+                @else
+                <div class="col-12 text-center row">
+                @endif
                 <!--col总共12，用来分大小-->
-                <div class="d-none d-sm-block col-sm-1">#</div>
-                <div class="col-6 col-md-5">标题</div>
-                <div class="col-4 col-md-3">描述</div>
-                <div class="col-2 col-sm-1">时间</div>
-                <div class="d-none d-md-block col-md-1">更新时间</div>
-                <div class="d-none d-md-block col-md-1">类型</div>
+                    <div class="d-none d-sm-block col-sm-1">#</div>
+                    <div class="col-6 col-md-5">标题</div>
+                    <div class="col-4 col-md-3">描述</div>
+                    <div class="col-2 col-sm-1">时间</div>
+                    <div class="d-none d-md-block col-md-1">更新时间</div>
+                    <div class="d-none d-md-block col-md-1">类型</div>
+                </div>
             </div>
         </div>
-        <div class="item text-center list-group-item-action" v-for="(notice,index) in notices" :key="index" data-bs-toggle="modal" :data-bs-index="index" 
-
-@if (isset($utype)&&$utype==='a')
-        title="点击编辑公告信息" data-bs-target="#alter" :data-bs-nid="notice.nid"
+        <div class="row item list-group-item list-group-item-action " v-for="(notice,index) in notices" style="display: flex;" :class="{'active':check.includes(notice.nid)}"  :key="index" >
+        @if (isset($ladmin))
+            <div class="col-1" >
+                <input type="checkbox" :value="notice.nid" v-model="check" >
+                <a v-if="notice.ntype!=='d'" class="btn btn-danger" @click="del(index)" style="font-size:xx-small;"><i class="bi bi-trash3-fill"></i></a>
+                <a v-else class="btn btn-success" @click="recover(index)" style="font-size:xx-small;" ><i class="bi bi-arrow-repeat"></i></a>
+            </div>
+        @endif
+            <div data-bs-toggle="modal" :data-bs-index="index" 
+@if (isset($ladmin))
+class="row text-center col-11" title="点击编辑公告信息" data-bs-target="#alter" :data-bs-nid="notice.nid"
 @else
-        title="点击查看公告信息" data-bs-target="#info" @click="openinfo($event)"
+class="row text-center col-12" title="点击查看公告信息" data-bs-target="#info" @click="openinfo($event)"
 @endif>
 
+<!--上方代码为如果是管理员则可以改变公告信息，如果是用户则只可查看-->
 <!--把公告打印显示出来-->
-            <div class="row">
+
                 <div class="d-none d-sm-block col-sm-1 thead" >@{{ notice.nid }}</div>
                 <div class="col-6 col-md-5"><a class="btn btn-light text-truncate" style="width:95%;" :title="notice.ntitle" :href="'/notice/'+notice.nid" >@{{ notice.ntitle }}</a></div>
                 <div class="col-4 col-md-3 text-truncate" style="vertical-align: middle;align-self:center;" :title="notice.ndes">@{{ notice.ndes }}</div>
@@ -122,15 +142,16 @@
                 data:{num:{sum:0}},
                 notices:[],
                 notice:null,
-                @if (isset($utype)&&$utype==="a")
+                check:[],
+                @if (isset($ladmin))
                 url:"{{ config('var.anl') }}",
                 typekey:{!! json_encode($config_notice['typekey']['total']) !!},
                 @else
                 url:"{{ config('var.nl') }}",
                 typekey:{!! json_encode($config_notice['typekey']['all']) !!},
                 @endif
-                ntypes:isJSON({!! json_encode($config_notice['type']) !!}),
-                adis:isJSON({!! json_encode($config_notice['adis'],JSON_UNESCAPED_UNICODE) !!}),
+                ntypes:{!! json_encode($config_notice['type']) !!},
+                adis:{!! json_encode($config_notice['adis'],JSON_UNESCAPED_UNICODE) !!},
                 paramspre:{
                     page:"1",
                     ndes:"",
@@ -175,7 +196,11 @@
                         length:(new Date()).getTime()-getDate(notice.ntime).getTime(),
                         status:""
                     };
+                    //ntime为创建公告时间
+                    //send为发布到现在过了多久
+                    //判断公告的状态
                     this.getStatus(notice.ntime,this.time.send[i])
+                    //nupdate为修改公告时间
                     if(notice.ntime===notice.nupdate){
                         this.time.update[i]={
                             length:null,
@@ -187,7 +212,7 @@
                             length:(new Date()).getTime()-getDate(notice.nupdate).getTime(),
                             status:""
                         };
-                        //显示
+                        //显示，多少天前修改
                         this.getStatus(notice.nupdate,this.time.update[i])
                     }
                 }
@@ -201,9 +226,11 @@
             //没超过7天就显示多少天多少小时前
             getStatus(date,send){
                 if(send.length!==null){
+                    //大于7天
                     if(send.length>this.time.before){
                         send.length=null;
                         send.status=date;
+                        //小于7天显示时间
                     }else if(send.length>=0){
                         send.status=getSubTime(0,send.length);
                     }else{
@@ -222,6 +249,7 @@
                         this.time.send[i].length+=this.time.length;
                         this.getStatus(notice.ntime,this.time.send[i])
                     }
+                    //更新过的公告
                     if(notice.ntime!==notice.nupdate&&this.time.update[i].length!==null){
                         this.time.update[i].length+=this.time.length;
                         this.getStatus(notice.nupdate,this.time.update[i])
@@ -229,6 +257,8 @@
 
                 }
             },
+
+            //打开公告
             openinfo(event){
                 this.notice = Object.assign({},this.notices[event.currentTarget.getAttribute('data-bs-index')]);
             },
@@ -248,6 +278,36 @@
                     nend:"2023-12-31T00:00:00",
                     order:"0",
                 };
+            },
+            del(index){
+                let notice=this.notices[index];
+                let that=this;
+                getData('{!! config('var.and') !!}'+notice.nid,function(json){
+                    if(json.status===1){
+                        that.notices[index].ntype="d";
+                    }
+                },"#msg");
+            },
+            recover(index){
+                let notice=this.notices[index];
+                let that=this;
+                getData('{!! config('var.anr') !!}'+notice.nid,function(json){
+                    if(json.status===1){
+                        that.notices[index].ntype="h";
+                    }
+                },"#msg");
+            },
+            checkall(){
+                let flag=true;
+                for(notice of this.notices){
+                    if(!this.check.includes(notice.nid)){
+                        this.check.push(notice.nid);
+                        flag=false;
+                    }
+                }
+                if(flag===true){
+                    this.check.length=0;
+                }
             },
         }
     }).mount('#noticelist');

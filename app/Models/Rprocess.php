@@ -25,4 +25,5 @@ class Rprocess extends Model
     //
     protected $table="rprocess";
     protected $primaryKey="rpid";
+    public $timestamps=false;
 }

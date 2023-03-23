@@ -33,4 +33,5 @@ class Location extends Model
     //
     protected $table="location";
     protected $primaryKey="lid";
+    public $timestamps=false;
 }

@@ -1,3 +1,5 @@
+<!--分页-->
+<!--页面数大于1-->
 <div v-if="paginator.last_page>1">
 <nav style="padding-top:30px">
     <ul class="pagination justify-content-center">

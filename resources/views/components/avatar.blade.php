@@ -1,14 +1,18 @@
 <div id="alterapp">
+    <!--个性签名修改拟态框-->
 <x-modal title="@@{{ user.uname }} 的个性签名" id="sloganModal">
     <div class="modal-body">
         <textarea v-if="editable" id="avatarslogan" v-model="user.uinfo.slogan" placeholder="还没有个性签名哟~" class="form-control" rows="6" style="resize: none;"></textarea>
         <p v-if="!editable">@{{ user.uinfo.slogan==""?"还没有个性签名哟~":user.uinfo.slogan }}</p>
     </div>
+    <!--footer表示固定位置-->
     <x-slot name="footer">
         <button v-if="editable" type="button" class="btn btn-outline-success" @click="alterslogan">修改</button>
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
     </x-slot>
 </x-modal>
+
+<!--个人信息修改拟态框，点击修改后跳转到setting页面-->
 <x-modal title="@@{{ user.uname }} 的个人信息" id="unameModal">
     <div class="modal-body text-center">
         <p>邮箱：@{{ user.uemail }}</p>
@@ -20,24 +24,29 @@
         <p>手机：@{{ user.uinfo.tel ?? "未知" }}</p>
         <p>QQ：@{{ user.uinfo.qq ?? "未知" }}</p>
         <p>微信：@{{ user.uinfo.wid ?? "未知" }}</p>
-    </div>
+    </div>0
     <x-slot name="footer">
         <a v-if="editable" href="/user/" target="_blank" class="btn btn-outline-success btn-like">修改信息</a>
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
     </x-slot>
 </x-modal>
 
+<!--横幅-->
 <div class="crop-banner" id="crop-banner">
 <!-- Current avatar -->
+
+    <!--鼠标放上去会显示更换横幅四字-->
     <div v-if="editable" class="banner-view" style="cursor: pointer;" title="更换横幅">
         <img :src="user.banner" style="width: 100%;">
     </div>
     <!-- Cropping modal -->
+    <!--更换横幅拟态框-->
     <x-modal id="banner-modal" title="更换横幅" class="modal-fullscreen">
         <form id="uploadbanner" class="avatar-form" action="{{ config('var.uub') }}" enctype="multipart/form-data" method="post">
             {{ csrf_field() }}
             <div class="avatar-body">
                 <!-- Upload image and data -->
+                <!--上方的字，上传横幅-->
                 <div class="avatar-upload">
                     <input class="avatar-src" name="avatar_src" type="hidden">
                     <input class="avatar-data" name="avatar_data" type="hidden">
@@ -46,6 +55,7 @@
                 </div>
 
                 <!-- Crop and preview -->
+                <!--右边的三个小图片-->
                 <div class="row">
                     <div class="col-md-9">
                         <div class="avatar-wrapper"></div>
@@ -57,6 +67,7 @@
                     </div>
                 </div>
 
+                <!--footer为固定位置的部分-->
                 <x-slot name="footer">
                     <div class="row avatar-btns">
                         <div class="col-md-9">
@@ -91,18 +102,24 @@
         <img :src="user.banner" style="width: 100%;">
     </div>
 </div>
+
+
+<!--头像-->
 <div class="crop-avatar" id="crop-avatar" style="margin-top: -70px;padding: 0;">
     <div style="display: flex;background: rgba(0,0,0,0.44);padding: 3px;">
     <!-- Current avatar -->
+        <!--鼠标放上去显示更换头像字样-->
         <div v-if="editable" class="avatar-view" style="cursor: pointer;" :class="{ 'avatar-admin':user.utype==='s' , 'avatar-user':user.utype!=='s' }"  title="更换头像">
             <img :src="user.avatar" alt="头像">
         </div>
+        <!--更换头像拟态框-->
         <x-modal id="avatar-modal" title="更换头像" class="modal-fullscreen">
             <form id="uploadavatar" class="avatar-form" action="{{ config('var.uua') }}" enctype="multipart/form-data" method="post">
                 {{ csrf_field() }}
                 <div class="avatar-body">
 
                     <!-- Upload image and data -->
+                    <!--上传头像-->
                     <div class="avatar-upload">
                         <input class="avatar-src" name="avatar_src" type="hidden">
                         <input class="avatar-data" name="avatar_data" type="hidden">
@@ -111,6 +128,7 @@
                     </div>
 
                     <!-- Crop and preview -->
+                    <!--右边的三个大小不同的图-->
                     <div class="row">
                         <div class="col-md-9">
                             <div class="avatar-wrapper"></div>
@@ -121,6 +139,8 @@
                             <div class="avatar-preview preview-avatar-sm"></div>
                         </div>
                     </div>
+
+                    <!--footer为不变-->
                     <x-slot name="footer">
                         <div class="row avatar-btns">
                             <div class="col-md-9">
@@ -149,6 +169,7 @@
         <div v-if="!editable" class="avatar-view" :class="{ 'avatar-admin':user.utype==='s' , 'avatar-user':user.utype!=='s' }" >
             <img :src="user.avatar" alt="用户头像">
         </div>
+        <!--把横幅下边那一块显示出来-->
         <div style="padding: 0 0 0 10px;text-align: left;display: flex;flex-direction: column;width: 75%;">
             <h1 style="cursor: pointer;font-size:32px;margin-bottom: 0;color: white;" data-bs-toggle="modal" data-bs-target="#unameModal">@{{ user.uname }}</h1>
             <h5 style="cursor: pointer;margin: 0;" data-bs-toggle="modal" data-bs-target="#sloganModal"><small class="d-inline-block text-truncate" style="width: 75%;font-size: 12px;line-height:12px;color: #dddddd;" id="slogannow">@{{ user.uinfo.slogan==""?"还没有个性签名哟~":user.uinfo.slogan }}</small></h5>

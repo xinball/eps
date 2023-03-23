@@ -7,6 +7,7 @@
 
 @section('body')
 
+    <!--顶部那一行-->
     <header class="navbar navbar-light sticky-top bg-light flex-md-nowrap p-0 shadow">
         <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">管理中心</a>
         <div class="d-none d-md-block " style="padding:10px;width:100%;align-self:center;text-align:center;">{{ $statement }}</div>
@@ -15,6 +16,7 @@
         </button>
     </header>
 
+    <!--不同功能分别跳转-->
     <div class="container-fluid">
         <div class="row">
             <nav id="sidebarMenu"style="margin-top: 5rem;"  class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">

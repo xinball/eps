@@ -255,10 +255,9 @@ class ContestController extends Controller
             $this->getContest($contest);
         }
         //获取每种比赛的数量
-        $num=$this->getTypeNum('a');
         $this->result->data=[
             'contests'=>$contests,
-            'num'=>$num,
+            'num'=>$this->getTypeNum('a'),
         ];
         view()->share("contests",$contests);
         $this->getResult();

@@ -110,25 +110,21 @@ class Controller extends BaseController
             {
             "a":"未激活用户",
             "r":"普通用户",
-            "p":"批量创建用户（用于比赛）",
             "s":"管理员",
             "b":"封禁用户",
             "d":"已注销用户"
             }',
-            'typekey'=>'{"all":["a","r","p","s","b","d"]}',
+            'typekey'=>'{"all":["a","r","s","b","d"]}',
             'adis'=>'
             {
             "sum":{"label":"全部","btn":"dark","num":"badge bg-dark"},
             "s":{"label":"管理","btn":"primary","num":"badge bg-primary"},
             "r":{"label":"普通","btn":"success","num":"badge bg-success"},
-            "p":{"label":"比赛","btn":"info","num":"badge bg-info"},
             "a":{"label":"未激活","btn":"warning","num":"badge bg-warning"},
             "b":{"label":"封禁","btn":"secondary","num":"badge bg-secondary"},
             "d":{"label":"注销","btn":"danger","num":"badge bg-danger"}
             }',
         ];
-        view()->share('config_userpre',$this->config_user);
-        $this->config_user['typekey']=json_decode($this->config_user['typekey'],true);
 
         $this->config_notice=count(Redis::hGetAll('notice'))>0?Redis::hGetAll('notice'):[
             'listnum'=>20,
@@ -157,8 +153,6 @@ class Controller extends BaseController
             "d":["d"]
             }',
         ];
-        view()->share('config_noticepre',$this->config_notice);
-        $this->config_notice['typekey']=json_decode($this->config_notice['typekey'],true);
 
         $this->config_station=count(Redis::hGetAll('station'))>0?Redis::hGetAll('station'):[
             'listnum'=>20,
@@ -168,25 +162,62 @@ class Controller extends BaseController
                 "c":"关闭",
                 "d":"删除"
             }',
+            'type'=>'{
+                "p":"核酸",
+                "r":"抗原",
+                "v":"疫苗"
+            }',
+            'typekey'=>'{"total":["p","r","v"]}',
         ];
-        view()->share('config_stationpre',$this->config_station);
+        $this->config_appoint=count(Redis::hGetAll('appoint'))>0?Redis::hGetAll('appoint'):[
+            'listnum'=>20,
+            'pagenum'=>3,
+            'state'=>'{
+                "n":"创建",
+                "s":"提交",
+                "r":"拒绝",
+                "f":"完成",
+                "d":"删除"
+            }',
+            'statekey'=>'{"total":["n","r","s","f","d"],"all":["n","r","s","f","d"]}',
+        ];
 
         $this->config_location=count(Redis::hGetAll('location'))>0?Redis::hGetAll('location'):[
             'listnum'=>20,
             'pagenum'=>3,
-            'state'=>'{
+            'type'=>'{
                 "o":"开放",
                 "c":"关闭",
                 "d":"删除"
             }',
         ];
-        view()->share('config_locationpre',$this->config_location);
 
         view()->share('config_basic',$this->config_basic);
+
+        view()->share('config_userpre',$this->config_user);
+        $this->config_user['typekey']=json_decode($this->config_user['typekey'],true);
         view()->share('config_user',$this->config_user);
+
+        view()->share('config_noticepre',$this->config_notice);
+        $this->config_notice['typekey']=json_decode($this->config_notice['typekey'],true);
+        $this->config_notice['type']=json_decode($this->config_notice['type'],true);
+        $this->config_notice['adis']=json_decode($this->config_notice['adis'],true);
         view()->share('config_notice',$this->config_notice);
+
+        view()->share('config_stationpre',$this->config_station);
+        $this->config_station['typekey']=json_decode($this->config_station['typekey'],true);
+        $this->config_station['type']=json_decode($this->config_station['type'],true);
+        $this->config_station['state']=json_decode($this->config_station['state'],true);
         view()->share('config_station',$this->config_station);
+
+        view()->share('config_appointpre',$this->config_appoint);
+        $this->config_appoint['statekey']=json_decode($this->config_appoint['statekey'],true);
+        $this->config_appoint['state']=json_decode($this->config_appoint['state'],true);
+        view()->share('config_appoint',$this->config_appoint);
+
+        view()->share('config_locationpre',$this->config_location);
         view()->share('config_location',$this->config_location);
+
         view()->share('statement',Func::getStatement());
         view()->share('ip',Func::getIp());
         
@@ -335,47 +366,55 @@ class Controller extends BaseController
     }
     public function listMsg($data){
         if($data->total()>0){
-            $this->successMsg=" 我们为您找到了 ".$data->total()." 条符合条件的记录ヾ(^∀^)ﾉ";
+            $this->successMsg=" 我们为您找到了 ".$data->total()." 条符合条件的记录";
             if($data->hasPages()){
-                $this->successMsg.="  页面太多了？底部页码处输入页数快速到达！";
+                $this->successMsg.="  页面太多？底部页码处输入页数快速到达！";
             }
         }
     }
-
-
     public function setReqResult($request){
         $request->result=$this->result;
     }
-
-
-    //得到指定比赛
-    public function getContest($contest,$private=false){
-        $contest->img=Func::getCAvatar($contest->cid);
-        $contest->coption=json_decode($contest->coption);
-        if(!isset($contest->coption->rtrank)){
-            $contest->coption->rtrank=true;
-        }else{
-            $contest->coption->rtrank=( $contest->coption->rtrank==='false'||$contest->coption->rtrank===false?false:true);
+    //得到指定站点
+    public function getStation($station){
+        if($station===null){
+            return null;
         }
-        if(!isset($contest->coption->numlimit)||!Func::isNum($contest->coption->numlimit)){
-            $contest->coption->numlimit=0;
-        }else{
-            $contest->coption->numlimit=intval($contest->coption->numlimit);
+        $station->img=Func::getSAvatar($station->sid);
+        $station->stime=json_decode($station->stime,true);
+        $station->sinfo=json_decode($station->sinfo);
+        if(!isset($station->sinfo->p)){
+            $station->sinfo->p=false;
         }
-        if(!isset($contest->coption->punish)||!Func::isNum($contest->coption->punish)){
-            $contest->coption->punish=0;
-        }else{
-            $contest->coption->punish=intval($contest->coption->punish);
+        if(!isset($station->sinfo->r)){
+            $station->sinfo->r=false;
         }
-        
-        $this->setContestPrivate($contest,$private);
+        if(!isset($station->sinfo->v)){
+            $station->sinfo->v=false;
+        }
+        if(!isset($station->sinfo->pnum)){
+            $station->sinfo->pnum=0;
+        }
+        if(!isset($station->sinfo->rnum)){
+            $station->sinfo->rnum=0;
+        }
+        if(!isset($station->sinfo->vnum)){
+            $station->sinfo->vnum=0;
+        }
+        return $station;
     }
-    public function setContestPrivate($contest,$private=false){
-        if($private){
-            $contest->coption->pwd=isset($contest->coption->pwd)&&$contest->coption->pwd!==null?true:false;
-        }else{
-            $contest->coption->pwd=isset($contest->coption->pwd)&&$contest->coption->pwd!==null?$contest->coption->pwd:false;
+    //处理预约对象
+    public function getAppoint($appoint){
+        $appoint->ainfo=json_decode($appoint->ainfo);
+        if(isset($appoint->aprocesses)){
+            foreach($appoint->aprocesses as $aprocess){
+                getAprocess($aprocess);
+            }
         }
+        return $appoint;
     }
-
+    public function getAprocess($aprocess){
+        $aprocess->apinfo=json_decode($aprocess->apinfo);
+        return $aprocess;
+    }
 }

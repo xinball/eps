@@ -25,4 +25,8 @@ class Aprocess extends Model
     //
     protected $table="aprocess";
     protected $primaryKey="apid";
+    public $timestamps=false;
+    static public function getAprocessByAid($aid){
+        return Aprocess::select("apid","user.uid as uid","uname","apinfo","aptime")->where('aid',$aid)->join('user','user.uid','aprocess.uid')->orderByDesc("apid")->get();
+    }
 }

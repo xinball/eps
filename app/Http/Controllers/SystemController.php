@@ -10,10 +10,10 @@ use App\Models\States;
 use App\Models\Cities;
 use App\Models\Regions;
 
-class AddressController extends Controller
+class SystemController extends Controller
 {
     //
-    public function get(Request $request){
+    public function getaddr(Request $request){
         $type=$request->get("type",null);
         $id=$request->get("id",null);
         $code=$request->get("code",null);
@@ -34,7 +34,7 @@ class AddressController extends Controller
         }
         return "";
     }
-    public function getlist(Request $request){
+    public function getaddrlist(Request $request){
         $type=$request->get("type",null);
         $id=$request->get("id");
         if($type==='z'){
@@ -49,5 +49,8 @@ class AddressController extends Controller
             return Regions::getRegionsByCid($id);
         }
         return "";
+    }
+    public function ping(Request $request){
+        return count(Redis::keys("token_*"));
     }
 }

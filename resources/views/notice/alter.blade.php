@@ -37,6 +37,7 @@
             <textarea id="altereditor" class="ckeditor"></textarea>
         </div>
 
+        <!--右下角不动的按钮-->
         <x-slot name="footer">
             <button type="button" class="btn btn-outline-success"  @click="alter">@{{ sendtypes[sendtype] }}</button>
         </x-slot>
@@ -61,7 +62,7 @@
                         n:"即时发布",
                         o:"定时发布",
                     },
-                    ntypes:isJSON({!! json_encode($config_notice['type']) !!}),
+                    ntypes:{!! json_encode($config_notice['type']) !!},
                     typekey:{!! json_encode($config_notice['typekey']['all']) !!},
                 }
             },
@@ -69,6 +70,7 @@
                 this.init();
             },
             methods:{
+                //点击更改按钮时修改
                 alter(){
                     let data={
                         ntitle:this.notice.ntitle,
@@ -84,6 +86,7 @@
                     console.log(data);
                     getData("{!! config('var.ana') !!}"+this.notice.nid,null,"#alter-msg",data);                    
                 },
+                //初始化，点进去要先显示原本的数据，因此要先用aget取出来
                 init(){
                     CKSource.Editor.create( document.querySelector( '#altereditor' ),editorconfig)
                     .then( newEditor => {altereditor=newEditor;} )

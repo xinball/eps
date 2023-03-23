@@ -7,25 +7,6 @@
 
 @section('main')
 <div id="alterapp" class="col-sm-12 col-lg-10 col-xxl-8 align-self-auto justify-content-center" style="margin: auto;">
-    <div class="progress w-100" style="height: 40px;">
-        <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" :style="'width:'+ info.sysinfo.data.cpu+'%'"></div>
-        <div style="align-self: center">@{{ ' &nbsp;CPU：'+info.sysinfo.data.cpu+' % &nbsp;&nbsp;核心数：'+info.sysinfo.data.cpu_core }}
-        </div>
-    </div>
-    <div class="progress w-100" style="height: 40px;">
-        <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" :style="'width:'+ info.sysinfo.data.memory+'%'"></div>
-        <div style="align-self: center">@{{ ' &nbsp;内存：'+info.sysinfo.data.memory+' %' }}
-        </div>
-    </div>
-    <div v-if="sdisplay" class="progress w-100" style="height: 40px;">
-        <div v-for="(dis,index) in adis" class="progress-bar progress-bar-striped progress-bar-animated" :style="'width:'+ (info.snums.sum===0?0:1.0*(info.snums[index]/info.snums.sum)*50)+'%'" :class="['bg-'+dis.btn]">@{{ dis.label+':'+info.snums[index] }}</div>
-    </div>
-    <div v-if="udisplay" class="progress w-100" style="height: 40px;">
-        <div v-for="(dis,index) in adis" class="progress-bar progress-bar-striped progress-bar-animated" :style="'width:'+ (info.usnums.sum===0?0:1.0*(info.usnums[index]/info.usnums.sum)*50)+'%'" :class="['bg-'+dis.btn]">@{{ dis.label+':'+info.usnums[index] }}</div>
-    </div>
-    <div v-if="adisplay" class="progress w-100" style="height: 40px;">
-        <div v-for="(dis,index) in adis" class="progress-bar progress-bar-striped progress-bar-animated" :style="'width:'+ (info.asnums.sum===0?0:1.0*(info.asnums[index]/info.asnums.sum)*50)+'%'" :class="['bg-'+dis.btn]">@{{ dis.label+':'+info.asnums[index] }}</div>
-    </div>
     <form class="needs-validation" novalidate>
         <h4 class="mb-3">基本</h4>
         <div class="row g-3">

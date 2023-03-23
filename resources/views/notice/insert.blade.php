@@ -1,3 +1,4 @@
+<!--点击发布后的确认页面-->
 <x-modal id="checkinsert" class="modal-sm" title="添加确认">
     <div class="text-center p-4 pb-4">
         您确定要添加该公告吗？
@@ -7,6 +8,8 @@
         <button type="button" class="btn btn-outline-info"  data-bs-toggle="modal" data-bs-target="#insert">返回</button>
     </x-slot>
 </x-modal>
+
+    <!--跟修改一样的界面，唯一不同是修改要先初始化出以前的数据-->
     <x-modal id="insert" class="modal-fullscreen ckeditor" title="添加公告@@{{ ntitle===''?'':'-'+ntitle }}">
         <div class="text-center p-4 pb-4">
             <h4 class="mb-3">基本信息</h4>
@@ -70,7 +73,7 @@
                             n:"即时发布",
                             o:"定时发布",
                         },
-                        ntypes:isJSON({!! json_encode($config_notice['type']) !!}),
+                        ntypes:{!! json_encode($config_notice['type']) !!},
                         typekey:{!! json_encode($config_notice['typekey']['all']) !!},
                     }
                 },
@@ -78,6 +81,8 @@
                     this.init();
                 },
                 methods:{
+
+                    //插入
                     insert(){
                         let data={
                             ntitle:this.ntitle,
@@ -95,6 +100,8 @@
                         getData("{!! config('var.ani') !!}",null,"#insert-msg",data);
                         
                     },
+
+                    //初始化固定，但修改的初始化要载入原来数据
                     init(){
                         CKSource.Editor.create( document.querySelector( '#inserteditor' ),editorconfig)
                         .then( newEditor => {inserteditor=newEditor;} )

@@ -278,6 +278,7 @@ class UserController extends Controller
         if(!$flag)
             $this->errMsg="抱歉！您的激活链接不正确<br/>请重新打开邮件内的链接进行激活！";
 
+            //成功消息发出后，返回公告界面
         if($this->successMsg)
             $this->url="/notice";
         $this->getResult();
@@ -446,8 +447,12 @@ class UserController extends Controller
                             $this->luser->upwd=json_encode($password,JSON_UNESCAPED_UNICODE);
                         unset($this->luser->avatar);
                         unset($this->luser->banner);
+                        if($homepage===null){
+                            $homepage=config("app.host").'/'.$this->luser->uid;
+                            $homepagessl=config("app.http");
+                        }
                         $this->luser->uinfo=json_encode([
-                            'reg_ip'=>$this->luser->uinfo['reg_ip'],
+                            'reg_ip'=>$this->luser->uinfo['reg_ip']??Func::getIp(),
                             'lang'=>$lang,
                             'private'=>$private,
                             'sex'=>$sex,
@@ -502,7 +507,7 @@ class UserController extends Controller
         return $this->result->toJson();
     }
 
-    //加载头像
+    //上传头像
     public function uploadavatar(Request $request){
         if (!$this->luser){
             $response = array(
@@ -525,7 +530,7 @@ class UserController extends Controller
         echo json_encode($response);
     }
 
-    //加载横幅
+    //上传横幅
     public function uploadbanner(Request $request){
         if (!$this->luser){
             $response = array(
@@ -586,6 +591,7 @@ class UserController extends Controller
         }else{
             if($user){
                 $this->successMsg="欢迎进入用户 ".$user->uname." 的个人主页";
+                //Func::getUser就是得到头像和横幅还有信息
                 Func::getUser($user);
                 unset($user->upwd);
                 $this->result->data = [
@@ -627,6 +633,8 @@ class UserController extends Controller
             }
             $sql=$sql->where($where);
     
+
+            //根据侧边栏的选择看如何排列
             $orderPara = $params['order']??"";
             if($orderPara==="uname"||$orderPara==="uemail"){
                 $sql=$sql->orderBy($orderPara)->orderByDesc('uid');
@@ -638,6 +646,7 @@ class UserController extends Controller
             //echo $sql->toSql();
     
             $users=$sql->paginate($this->config_user['listnum'])->withQueryString();
+            //Func::getUser就是得到头像和横幅还有信息
             foreach($users as $user){
                 Func::getUser($user);
             }

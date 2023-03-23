@@ -220,12 +220,12 @@ function initpaginator(app){
         getData(app.url+url,function(json){
             app.paramspre=Object.assign({},params);
             if(json.data!==null){
-                if(app.dataname==='stations'){
-                    json.data.stations.data.forEach(station=>{
-                        station.sinfo=isJSON(station.sinfo);
-                        station.service=(station.sinfo.p===1?'<span class="badge bg-info">核酸</span>':'')+(station.sinfo.r===1?'<span class="badge bg-warning">抗原</span>':'')+(station.sinfo.v===1?'<span class="badge bg-success">疫苗</span>':'');
-                    });
-                }
+                // if(app.dataname==='stations'){
+                //     json.data.stations.data.forEach(station=>{
+                //         station.sinfo=isJSON(station.sinfo);
+                //         station.service=(station.sinfo.p===1?'<span class="badge bg-info">核酸</span>':'')+(station.sinfo.r===1?'<span class="badge bg-warning">抗原</span>':'')+(station.sinfo.v===1?'<span class="badge bg-success">疫苗</span>':'');
+                //     });
+                // }
                 app.data=json.data;
                 app.paginator=json.data[app.dataname];
                 app[app.dataname]=json.data[app.dataname].data;

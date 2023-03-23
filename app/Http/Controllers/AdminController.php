@@ -48,7 +48,7 @@ class AdminController extends Controller
         return view('admin.report')->with('ractive',true);
     }
     public function noticeview(Request $request){
-        if ($auth=$this->authAdminView($request)){
+        if ($auth=$this->authAdminView($request)){           //检查管理员是否登录
             return $auth;
         }
         return view('admin.notice')->with('nactive',true);
@@ -69,7 +69,9 @@ class AdminController extends Controller
         return view('admin.user')->with('uactive',true)->with('ban',Redis::lrange('ban',0,-1));
     }
 
+
     public function login(Request $request) {
+        //得到登录时的IP
         $ip=Func::getIp();
         if(in_array($ip,Redis::Lrange('ban',0,-1))){
             $this->errMsg="您所在IP已被封禁！";
@@ -102,6 +104,7 @@ class AdminController extends Controller
                 }elseif($admin->utype!='s'&&$admin->utype!='x') {
                     $this->errMsg="没有权限：用户不是管理员！";
                 }else{
+                    //password存真正的密码
                     $password=json_decode($admin->upwd);
                     if(md5($password->auth . $upwd) != $password->pwd) {
                         $left=Redis::exists("left_".$admin->uid)?Redis::get("left_".$admin->uid):6;
@@ -124,8 +127,10 @@ class AdminController extends Controller
                 }
             }
         }
+        //返回刚才页面
         if($this->successMsg)
             $this->url=url()->previous();
+
         $this->getResult();
         return $this->result->toJson();
     }

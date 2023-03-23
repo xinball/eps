@@ -7,11 +7,11 @@
 
 @section('main')
 
-@include('notice.insert',['utype'=>'a'])
-@include('notice.alter',['utype'=>'a'])
+@include('notice.insert')
+@include('notice.alter')
 
 <button type="button" data-bs-toggle="modal" data-bs-target="#insert" class="btn btn-outline-dark"><i class="bi bi-patch-plus-fill"></i> 添加公告</button>
-@include('notice.list_tem',['utype'=>'a'])
+@include('notice.list_tem')
 
 @endsection
 

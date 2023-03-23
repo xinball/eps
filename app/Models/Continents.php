@@ -28,7 +28,7 @@ class Continents extends Model
     protected $primaryKey="id";
     
     static public function getInfo($id,$name,$cname){
-        $sql=(new Continents())->where('continents.id',$id);
+        $sql=Continents::where('continents.id',$id);
         if(Func::Length($name)>0)
             $sql=$sql->orwhere('continents.name','like','%'.$name.'%');
         if(Func::Length($cname)>0)
