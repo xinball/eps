@@ -33,7 +33,7 @@ class Continents extends Model
             $sql=$sql->orwhere('continents.name','like','%'.$name.'%');
         if(Func::Length($cname)>0)
             $sql=$sql->orwhere('continents.cname','like','%'.$cname.'%');
-        return $sql->get();
+        return $sql->first();
     }
 
 }

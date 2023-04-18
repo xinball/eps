@@ -17,23 +17,14 @@ use Illuminate\Support\Facades\DB;
 
 class NoticeController extends Controller
 {
-    //
-    public function indexview(Request $request,$nid){
-        if($this->ladmin!==null){                                                  //管理员查看某公告
-            //重点在aget的目标地址
-            //管理员在普通页面看公告也是跟用户一样的，只是在管理页面可以改
-            return view('notice.index')->with('nactive',true)->with('result',$this->aget($request,$nid));
+    private function checkauth(){
+        if($this->ladmin!==null&&($this->ladmin->utype==='s'||$this->ladmin->utype==='x')){
+            return true;
         }
-        //重点在get的目标地址
-        return view('notice.index')->with('nactive',true)->with('result',$this->get($request,$nid));// 用户查看某公告
+        return false;
     }
-    public function listview(Request $request){         //显示消息列表
-        return view('notice.list')->with('nactive',true);
-    }
-
-
     //每个种类的公告有多少个
-    public function getTypeNum(){
+    private function getTypeNum(){
         $sql = Notice::select('ntype',DB::raw("count('nid') as num"))->groupBy('ntype');
         $nums = $sql->get();
         $typenum=[
@@ -49,6 +40,23 @@ class NoticeController extends Controller
             $typenum['sum']+=$typenum[$type];
         }
         return $typenum;
+    }
+    public function indexview(Request $request,$nid){
+        if($this->checkauth()){                                                  //管理员查看某公告
+            //重点在aget的目标地址
+            //管理员在普通页面看公告也是跟用户一样的，只是在管理页面可以改
+            return view('notice.index')->with('nactive',true)->with('result',$this->aget($request,$nid));
+        }
+        //重点在get的目标地址
+        return view('notice.index')->with('nactive',true)->with('result',$this->get($request,$nid));// 用户查看某公告
+    }
+    public function listview(Request $request){//显示消息列表
+        if($request->errMsg){
+            $this->errMsg=$request->errMsg;
+            $this->getResult();
+            return view('notice.list')->with('nactive',true)->with('result',$this->result->toJson());
+        }
+        return view('notice.list')->with('nactive',true);
     }
 
     //用户查看某公告
@@ -77,8 +85,6 @@ class NoticeController extends Controller
         $this->getResult();
         return $this->result->toJson();
     }
-
-
     //用户得到消息列表
     public function getlist(Request $request){
         $params=$request->all();
@@ -111,7 +117,7 @@ class NoticeController extends Controller
         //echo $sql->toSql();
 
         $notices=$sql->paginate($this->config_notice['listnum'])->withQueryString();
-        // $this->listMsg($notices);
+        $this->listMsg($notices);
         $this->result->data=[
             'notices'=>$notices,
         ];
@@ -123,12 +129,12 @@ class NoticeController extends Controller
     public function aget(Request $request,$nid){
         //目标地址为/admin/notice/
         $this->url="/admin/notice";
-        if($this->ladmin===null){                      //检测管理员身份
+        if(!$this->checkauth()){                      //检测管理员身份
             $this->errMsg="您没有权限获取该公告信息！";
         }else{
             $notice=Notice::where('nid',$nid)->first();
             if($notice!==null){
-                if($notice->ntype!=='d'){
+                if($notice->ntype!=='d'){           //公告存在且公告不是删除状态则可以被查找
                     $this->successMsg="";
                     $this->result->data=[
                         'notice'=>$notice,
@@ -144,10 +150,9 @@ class NoticeController extends Controller
         $this->getResult();
         return $this->result->toJson();
     }
-
     //管理员获取消息列表
     public function agetlist(Request $request){
-        if($this->ladmin===null){                           //检测管理员身份
+        if(!$this->checkauth()){//检测管理员身份
             $this->errMsg="您没有权限获取比赛列表！";
         }else{
             $params=$request->all();
@@ -194,9 +199,9 @@ class NoticeController extends Controller
     //管理员插入新公告
     public function insert(Request $request){
         $ntype=$request->post("ntype",'');
-        if ($this->ladmin===null){
+        if (!$this->checkauth()){                    //检测是否为管理员身份
             $this->errMsg="您不是管理员，没有权限发布公告！";
-        }elseif(!in_array($ntype,$this->config_notice['typekey']['all'])){
+        }elseif(!in_array($ntype,$this->config_notice['typekey']['all'])){                 //检测类型是否有误
             $this->errMsg="公告类型有误！";
         }else{
             $ntitle=$request->post('ntitle',null);
@@ -219,7 +224,7 @@ class NoticeController extends Controller
                 $notice->ndes=$ndes;
                 $notice->ntype=$ntype;
                 $notice->ninfo=$ninfo;
-                if($sendtype==='o'){
+                if($sendtype==='o'){                  //定时发布
                     $nowtime=time();
                     $ntime=$request->post('ntime',"");
                     $ntimeval=strtotime($ntime);
@@ -231,7 +236,7 @@ class NoticeController extends Controller
                         $notice->ntime=$ntime;
                         $notice->nupdate=$ntime;
                     }
-                }elseif($sendtype!=='n'){
+                }elseif($sendtype!=='n'){            //发布方式有误
                     $this->errMsg="公告发布方式选择有误！";
                 }
                 if($this->errMsg===null){
@@ -248,11 +253,9 @@ class NoticeController extends Controller
         $this->getResult();
         return $this->result->toJson();
     }
-
-
     //管理员删除公告
     public function del($nid){
-        if($this->ladmin===null){
+        if(!$this->checkauth()){              //检测管理员是否登录
             $this->errMsg="您没有权限删除该公告！";
         }else{
             $notice=Notice::where('nid',$nid)->first();            //先找到要删除的公告
@@ -274,11 +277,9 @@ class NoticeController extends Controller
         $this->getResult();
         return $this->result->toJson();
     }
-
-
-    //
+    //恢复
     public function recover($nid){
-        if($this->ladmin===null){
+        if(!$this->checkauth()){                //检测管理员是否登录
             $this->errMsg="您没有权限恢复该公告！";
         }else{
             $notice=Notice::where('nid',$nid)->first();          //先找到要恢复的公告
@@ -300,23 +301,24 @@ class NoticeController extends Controller
         $this->getResult();
         return $this->result->toJson();
     }
-    
-
+    //修改
     public function alter(Request $request,$nid){
         $notice=Notice::where('nid',$nid)->first();                //先找到要更改的公告
         if($notice!==null){
             $ntype=$request->post("ntype",'');
-            if ($this->ladmin===null){
+            if (!$this->checkauth()){                            //管理是否登录
                 $this->errMsg="您不是管理员，没有权限发布公告！";
-            }elseif(!in_array($ntype,$this->config_notice['typekey']['all'])){
+            }elseif(!in_array($ntype,$this->config_notice['typekey']['all'])){     //公告类型是否正确
                 $this->errMsg="公告类型有误！";
-            }else{
+            }else{ 
+                //数据输入进来
                 $ntitle=$request->post('ntitle','');
                 $ndes=$request->post('ndes',"");
                 $ninfo=$request->post('ninfo','');
 
                 //$ninfo=Purifier::clean($request->post('ninfo',''));
                 //$noption=[];
+                //数据是否符合规范
                 if($ntitle===""||Func::Length($ntitle)>50){
                     $this->errMsg="公告标题格式不合规范【长度不得大于50】!";
                 }elseif($ndes===""||Func::Length($ndes)>100){
@@ -330,7 +332,7 @@ class NoticeController extends Controller
                     $notice->ndes=$ndes;
                     $notice->ntype=$ntype;
                     $notice->ninfo=$ninfo;
-                    if($sendtype==='o'){
+                    if($sendtype==='o'){                    //定时发布
                         $nowtime=time();
                         $ntime=$request->post('ntime',"");
                         $ntimeval=strtotime($ntime);
@@ -342,7 +344,7 @@ class NoticeController extends Controller
                             $notice->ntime=$ntime;
                             $notice->nupdate=$ntime;
                         }
-                    }elseif($sendtype==='n'){
+                    }elseif($sendtype==='n'){              //及时发布
                         $date=date('Y-m-d H:i:s');
                         $notice->ntime=$date;
                         $notice->nupdate=$date;
@@ -351,7 +353,7 @@ class NoticeController extends Controller
                     }
                     if($this->errMsg===null){
                         // $notice->noption=json_encode($noption,JSON_UNESCAPED_UNICODE);
-                        if($notice->update()){
+                        if($notice->update()){                   //更新过，说明修改成功了
                             $this->successMsg="公告修改成功！";
                         }else{
                             $this->errMsg='修改公告失败！';
@@ -366,5 +368,4 @@ class NoticeController extends Controller
         $this->getResult();
         return $this->result->toJson();
     }
-
 }

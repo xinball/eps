@@ -1157,7 +1157,8 @@
       degree = num(degree);
 
       if (degree && this.built && !this.disabled && this.options.rotatable) {
-        image.rotate = (image.rotate + degree) % 360;
+        // image.rotate = (image.rotate + degree) % 360;
+        image.rotate = (degree) % 360;
         this.rotated = true;
         this.renderCanvas(true);
       }

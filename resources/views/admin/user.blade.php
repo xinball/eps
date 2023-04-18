@@ -11,7 +11,7 @@
 {{-- @include('template.useralter') --}}
 
 {{-- <button type="button" data-bs-toggle="modal" data-bs-target="#insert" class="btn btn-outline-dark"><i class="bi bi-patch-plus-fill"></i> 添加公告</button> --}}
-@include('template.userlist')
+@include('admin.userlist')
 
 <main id="banlist" class="container list shadow">
     <h4>封禁IP列表</h4>
@@ -47,9 +47,13 @@ const banlist=Vue.createApp({
     computed:{
     },
     methods:{
+
+        //删除被ban的
         del(index){
             this.bans.splice(index,1);
         },
+
+        //保存
         saveban(){
             let data={
                 ban:JSON.stringify(this.bans),
@@ -57,6 +61,8 @@ const banlist=Vue.createApp({
             };
             getData("{!! config('var.aal') !!}"+'ban',null,"#msg",data);
         },
+
+        //清空被ban的
         clear(){
             this.bans.length=0;
         }

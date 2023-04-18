@@ -34,14 +34,10 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{ isset($sactive)&&$sactive?"active":"" }}" href="/admin/station">
-                                <i class="bi bi-geo-fill"></i> 管理站点
+                                <i class="bi bi-buildings-fill"></i> 管理站点
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ isset($lactive)&&$lactive?"active":"" }}" href="/admin/location">
-                                <i class="bi bi-building-fill-gear"></i> 管理报备点
-                            </a>
-                        </li>
+@if ($ladmin!==null&&($ladmin->utype==='s'||$ladmin->utype==='x'))
                         <li class="nav-item">
                             <a class="nav-link {{ isset($uactive)&&$uactive?"active":"" }}" href="/admin/user">
                                 <i class="bi bi-person-fill-gear"></i> 管理用户
@@ -57,6 +53,7 @@
                                 <i class="bi bi-gear-fill"></i> 网站配置
                             </a>
                         </li>
+@endif
                     </ul>
                 </div>
             </nav>

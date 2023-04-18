@@ -3,6 +3,8 @@
     <div class="text-center p-4 pb-4">
         您确定要添加该公告吗？
     </div>
+
+    <!--footer代表这一部分位置不改变，调用insert-->
     <x-slot name="footer">
         <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#insert" onclick="insertapp.insert()">创建</button>
         <button type="button" class="btn btn-outline-info"  data-bs-toggle="modal" data-bs-target="#insert">返回</button>
@@ -45,7 +47,9 @@
             </div>
             <hr class="my-4"><br><br>
             <h4 class="mb-3">详细描述</h4>
-            <textarea id="inserteditor" class="ckeditor"></textarea>
+            <div class="row g-3">
+                <textarea id="inserteditor" class="ckeditor"></textarea>
+            </div>
         </div>
 
         <!--footer的作用是就算其他滑动了，footer的部分位置始终不变-->

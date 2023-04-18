@@ -53,7 +53,7 @@ class Countries extends Model
             $sql=$sql->orwhere('countries.full_cname','like','%'.$fcname.'%');
         if(Func::Length($code)>0)
             $sql=$sql->orwhere('countries.code','like','%'.$code.'%');
-        return $sql->get();
+        return $sql->first();
     }
 
 }

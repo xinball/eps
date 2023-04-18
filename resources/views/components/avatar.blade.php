@@ -1,3 +1,4 @@
+<!--x-avatar继承了这个-->
 <div id="alterapp">
     <!--个性签名修改拟态框-->
 <x-modal title="@@{{ user.uname }} 的个性签名" id="sloganModal">
@@ -24,7 +25,7 @@
         <p>手机：@{{ user.uinfo.tel ?? "未知" }}</p>
         <p>QQ：@{{ user.uinfo.qq ?? "未知" }}</p>
         <p>微信：@{{ user.uinfo.wid ?? "未知" }}</p>
-    </div>0
+    </div>
     <x-slot name="footer">
         <a v-if="editable" href="/user/" target="_blank" class="btn btn-outline-success btn-like">修改信息</a>
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
@@ -32,6 +33,7 @@
 </x-modal>
 
 <!--横幅-->
+<!--这里是真的把横幅显示出来-->
 <div class="crop-banner" id="crop-banner">
 <!-- Current avatar -->
 
@@ -42,6 +44,7 @@
     <!-- Cropping modal -->
     <!--更换横幅拟态框-->
     <x-modal id="banner-modal" title="更换横幅" class="modal-fullscreen">
+        <!--调用uub，上传横幅-->
         <form id="uploadbanner" class="avatar-form" action="{{ config('var.uub') }}" enctype="multipart/form-data" method="post">
             {{ csrf_field() }}
             <div class="avatar-body">
@@ -51,7 +54,8 @@
                     <input class="avatar-src" name="avatar_src" type="hidden">
                     <input class="avatar-data" name="avatar_data" type="hidden">
                     <label for="avatarInput">本地上传</label>
-                    <input class="avatar-input" id="avatarInput" name="avatar_file" type="file">
+                    <!--选择文件-->
+                    <input class="avatar-input" name="avatar_file" type="file">
                 </div>
 
                 <!-- Crop and preview -->
@@ -69,23 +73,11 @@
 
                 <!--footer为固定位置的部分-->
                 <x-slot name="footer">
-                    <div class="row avatar-btns">
-                        <div class="col-md-9">
-                            <div class="btn-group">
-                                <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-90" type="button" title="Rotate -90 degrees">-90°</button>
-                                <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-15" type="button">-15°</button>
-                                <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-30" type="button">-30°</button>
-                                <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-45" type="button">-45°</button>
-                            </div>
-                            <div class="btn-group">
-                                <button class="btn btn-outline-info" data-method="rotate" data-option="90" type="button" title="Rotate 90 degrees">+90°</button>
-                                <button class="btn btn-outline-info" data-method="rotate" data-option="15" type="button">15°</button>
-                                <button class="btn btn-outline-info" data-method="rotate" data-option="30" type="button">30°</button>
-                                <button class="btn btn-outline-info" data-method="rotate" data-option="45" type="button">45°</button>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <button form="uploadbanner" class="btn btn-outline-success btn-block avatar-save" type="submit">保存</button>
+                    <div class="row">
+                        <div class="input-group">
+                            <input class="avatar-btns" type="range" min="-180" max="180" data-method="rotate" data-option="45" value="0" class="form-range" class="" id="banner-btns">
+                            <button data-method="rotate" value="0" class="btn btn-outline-info avatar-btns" type="submit">重置</button>
+                            <button form="uploadavatar" class="btn btn-outline-success btn-block avatar-save" type="submit">保存</button>
                         </div>
                     </div>
                 </x-slot>
@@ -114,6 +106,7 @@
         </div>
         <!--更换头像拟态框-->
         <x-modal id="avatar-modal" title="更换头像" class="modal-fullscreen">
+            <!--调用uua，上传头像-->
             <form id="uploadavatar" class="avatar-form" action="{{ config('var.uua') }}" enctype="multipart/form-data" method="post">
                 {{ csrf_field() }}
                 <div class="avatar-body">
@@ -124,7 +117,7 @@
                         <input class="avatar-src" name="avatar_src" type="hidden">
                         <input class="avatar-data" name="avatar_data" type="hidden">
                         <label for="avatarInput">本地上传</label>
-                        <input class="avatar-input" id="avatarInput" name="avatar_file" type="file">
+                        <input class="avatar-input" name="avatar_file" type="file">
                     </div>
 
                     <!-- Crop and preview -->
@@ -142,22 +135,10 @@
 
                     <!--footer为不变-->
                     <x-slot name="footer">
-                        <div class="row avatar-btns">
-                            <div class="col-md-9">
-                                <div class="btn-group">
-                                    <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-90" type="button" title="Rotate -90 degrees">-90°</button>
-                                    <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-15" type="button">-15°</button>
-                                    <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-30" type="button">-30°</button>
-                                    <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-45" type="button">-45°</button>
-                                </div>
-                                <div class="btn-group">
-                                    <button class="btn btn-outline-info" data-method="rotate" data-option="90" type="button" title="Rotate 90 degrees">+90°</button>
-                                    <button class="btn btn-outline-info" data-method="rotate" data-option="15" type="button">15°</button>
-                                    <button class="btn btn-outline-info" data-method="rotate" data-option="30" type="button">30°</button>
-                                    <button class="btn btn-outline-info" data-method="rotate" data-option="45" type="button">45°</button>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
+                        <div class="row">
+                            <div class="input-group">
+                                <input class="avatar-btns" type="range" min="-180" max="180" data-method="rotate" data-option="45" value="0" class="form-range" class="" id="avatar-btns">
+                                <button data-method="rotate" value="0" class="btn btn-outline-info avatar-btns" type="submit">重置</button>
                                 <button form="uploadavatar" class="btn btn-outline-success btn-block avatar-save" type="submit">保存</button>
                             </div>
                         </div>
@@ -166,10 +147,11 @@
             </form>
         </x-modal>
 
+        <!--把用户头像显示出来-->
         <div v-if="!editable" class="avatar-view" :class="{ 'avatar-admin':user.utype==='s' , 'avatar-user':user.utype!=='s' }" >
             <img :src="user.avatar" alt="用户头像">
         </div>
-        <!--把横幅下边那一块显示出来-->
+        <!--把用户姓名，个性签名显示出来-->
         <div style="padding: 0 0 0 10px;text-align: left;display: flex;flex-direction: column;width: 75%;">
             <h1 style="cursor: pointer;font-size:32px;margin-bottom: 0;color: white;" data-bs-toggle="modal" data-bs-target="#unameModal">@{{ user.uname }}</h1>
             <h5 style="cursor: pointer;margin: 0;" data-bs-toggle="modal" data-bs-target="#sloganModal"><small class="d-inline-block text-truncate" style="width: 75%;font-size: 12px;line-height:12px;color: #dddddd;" id="slogannow">@{{ user.uinfo.slogan==""?"还没有个性签名哟~":user.uinfo.slogan }}</small></h5>
@@ -209,14 +191,7 @@
                 },
                 utypes:isJSON({!! json_encode($config_user['type']) !!}),
                 
-                uidtypes:{
-                    "0":"中国居民身份证",
-                    "1":"港澳台居民居住证",
-                    "2":"港澳居民来往内地通行证",
-                    "3":"台湾居民来往大陆通行证",
-                    "4":"护照",
-                    "5":"外国人永久居留身份证"
-                },
+                uidtypes:{!! json_encode($config_user['idnotype'],JSON_UNESCAPED_UNICODE) !!},
                 privatedis:true,
                 editable:false,
 
@@ -227,10 +202,10 @@
         },
         methods:{
             init(){
+                //初始化，上边先创建一个新的用户对象，如果原来这个用户有数据，就先载入进来
                 if(json.data!==null){
                     this.user=json.data.user;
                     document.title+=this.user.uname;
-                    this.user.uinfo.homepagessl=0;
                     this.user.uinfo.homepage=this.user.uinfo.homepage===""?'eps.yono.top/user/'+this.user.uid:this.user.uinfo.homepage;
                     this.user.utime=this.user.utime.replace(" ","T");
                     @if(isset($luser)&&$luser!==null)
@@ -244,6 +219,7 @@
                 }
             },
             alter:function (){
+                //更改，在原有数据载入进来的基础上，把输入的新的需要更改的内容进行修改
                 let data={
                     upwd:this.upwd,
                     upwd1:this.upwd1,
@@ -260,6 +236,8 @@
                     wid:this.user.uinfo.wid,
                     _token:"{{csrf_token()}}"
                 };
+
+                //调用service/user/alter
                 getData("{!! config('var.ual') !!}",null,"#msg",data);
             },
             alterslogan:function (){
@@ -267,6 +245,8 @@
                     slogan:this.user.uinfo.slogan,
                     _token:"{{csrf_token()}}"
                 }
+
+                //调用/service/user/alterslogan
                 getData("{!! config('var.uals') !!}",null,"#msg",data);
             }
         },

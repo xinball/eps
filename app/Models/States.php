@@ -42,7 +42,7 @@ class States extends Model
             $sql=$sql->orwhere('states.cname','like','%'.$cname.'%');
         if(Func::Length($code)>0)
             $sql=$sql->orwhere('states.code','like','%'.$code.'%');
-        return $sql->get();
+        return $sql->first();
     }
     static public function getStatesByGid($country_id){
         return States::where('country_id',$country_id)->get();

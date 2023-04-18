@@ -7,8 +7,11 @@
 
 @section('main')
 
+
+<!--上方的个人头像和横幅是一个小零件，在components的avatar.blade.php里边-->
 <!--个人中心的页面内容-->
     <div class="col-sm-12 col-lg-10 col-xxl-8 align-self-auto justify-content-center" style="margin: auto;">
+    <!--因为有x-avatar，所以上方能出现用户的个人信息标签和头像，因为x-avatar继承了avatar.blade.php-->
         <x-avatar>
             <form class="needs-validation" novalidate>
                 <hr class="my-4">
@@ -119,7 +122,7 @@
                                 <option value="0">http://</option>
                                 <option value="1">https://</option>
                             </select>
-                            <input type="text" class="form-control" v-model="user.uinfo.homepage" id="homepage" :placeholder="'eps.yono.top/'+user.uid" >
+                            <input type="text" class="form-control" v-model="user.uinfo.homepage" id="homepage" :placeholder="'eps.yono.top/user/'+user.uid" >
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -153,6 +156,8 @@
                     </div>
                 </div>
                 <hr class="my-4">
+                <!--点击修改会调用service/user/alter-->
+                <!--修改时的逻辑全在alter里-->
                 <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter">修改</button>
             </form>
         </x-avatar>

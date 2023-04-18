@@ -43,12 +43,13 @@
         </form>    
     </x-offcanvas>
 
+    <!--添加公告按钮在admin/notice里边-->
 
     <!--下面是公告管理页面上方的类型选择按钮-->
 
 @if (isset($utype)&&$utype==="a")
-    <div class="">
-        <button v-for="(dis,index) in adis" style="margin-left:10px;" @click="settype(index)" class="btn" :class="[params.type===index?'btn-'+dis.btn:'btn-outline-'+dis.btn]" :disabled="data.num[index]===0">
+    <div class="input-group     justify-content-center">
+        <button v-for="(dis,index) in adis" style="" @click="settype(index)" class="btn" :class="[params.type===index?'btn-'+dis.btn:'btn-outline-'+dis.btn]" :disabled="data.num[index]===0">
             @{{ dis.label }} <span v-if="data.num[index]>0" :class="dis.num">@{{ data.num[index] }}</span>
         </button>
     </div>
@@ -59,19 +60,21 @@
 
         <!--点击信息后的弹出拟态框-->
         <x-modal id='info' title="公告信息">
-            <div v-if="notice!==null" class="modal-body" style="word-wrap:break-word;word-break:break-all;over-flow:hidden;">
-                <div class='modal-body' style='text-align:left;'>
+            <div v-if="notice!==null" style="word-wrap:break-word;word-break:break-all;over-flow:hidden;">
                     标题：@{{ notice.ntitle }}<br>
                     描述：@{{ notice.ndes }}<br>
                     发布时间：@{{ notice.ntime }}<br>
                     @{{ notice.nupdate===notice.ntime?"":"更新时间："+notice.nupdate }}<br>
-                </div>
             </div>
         </x-modal>
         <!--将公告栏划分-->
         <div class="item thead-dark thead">
             <div class="row">
+             <!--如果是管理员页面则有1用来留给删除-->
+
 @if (isset($utype)&&$utype==="a")
+                
+                <!--1留给全选，剩下11用来显示各项-->
                 <div class="col-1" @click="checkall"><a class="btn btn-outline-dark"><i class="bi bi-check-lg"></i></a></div>
                 <div class="col-11 text-center row">
 @else
@@ -87,11 +90,15 @@
                 </div>
             </div>
         </div>
-        <div class="row item list-group-item list-group-item-action " v-for="(notice,index) in notices" style="display: flex;" :class="{'active':check.includes(notice.nid)}"  :key="index" >
+
+        <!--把公告显示出来-->
+        <div class="row item list-group-item list-group-item-action " v-for="(notice,index) in notices" style="display: flex;" :class="{'active':check.includes(notice.nid),'delete':notice.ntype==='d'}"  :key="index" >
+        <!--如果是管理员端则可以删除和恢复-->
 @if (isset($utype)&&$utype==="a")
             <div class="col-1" >
-                <input type="checkbox" :value="notice.nid" v-model="check" >
-                <a v-if="notice.ntype!=='d'" class="btn btn-danger" @click="del(index)" style="font-size:xx-small;"><i class="bi bi-trash3-fill"></i></a>
+                <!--这一单位的空间有两个用途，1.勾选 2.删除恢复-->
+                <input type="checkbox" class="form-check-input"  :value="notice.nid" v-model="check" > 
+                <a v-if="notice.ntype!=='d'" class="btn btn-outline-danger" @click="del(index)" style="font-size:xx-small;"><i class="bi bi-trash3-fill"></i></a>
                 <a v-else class="btn btn-success" @click="recover(index)" style="font-size:xx-small;" ><i class="bi bi-arrow-repeat"></i></a>
             </div>
 @endif
@@ -267,7 +274,7 @@ class="row text-center col-12" title="点击查看公告信息" data-bs-target="
             getLastTime(index){
                 return getSubTime(getDate(this.notices[index].ntime).getTime(),(new Date()).getTime());
             },
-            //重置
+            //重置数据
             reset(){
                 this.params=this.paramspre={
                     page:"1",
@@ -279,6 +286,8 @@ class="row text-center col-12" title="点击查看公告信息" data-bs-target="
                     order:"0",
                 };
             },
+
+            //删除
             del(index){
                 let notice=this.notices[index];
                 let that=this;
@@ -288,6 +297,8 @@ class="row text-center col-12" title="点击查看公告信息" data-bs-target="
                     }
                 },"#msg");
             },
+
+            //恢复
             recover(index){
                 let notice=this.notices[index];
                 let that=this;
@@ -297,6 +308,8 @@ class="row text-center col-12" title="点击查看公告信息" data-bs-target="
                     }
                 },"#msg");
             },
+
+            //全选
             checkall(){
                 let flag=true;
                 for(notice of this.notices){

@@ -1,314 +1,496 @@
-
-    <x-modal id="alter" class="modal-fullscreen ckeditor" title="编辑站点-@@{{ problem.ptitle }}">
+    <x-modal id="alter" class="modal-fullscreen ckeditor" title="编辑站点@@{{ station.sname===''?'':'-'+station.sname }}">
         <div class="text-center p-4 pb-4">
-            <h4 class="mb-3">基本信息</h4>
+            <div class="crop-station" id="crop-station">
+                <div class="station-view btn btn-outline-dark" style="cursor: pointer;" title="更换站点图片">
+                    <img  :src="station.img" alt="" height="72" width="72" style="font-size: 68px;border-radius: 8px;" >
+                </div>
+            </div>
+            <h4 class="mb-3"><i class="bi bi-info-square-fill"></i> 基本信息</h4>
             <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="altersname" class="form-label">站点名称</label>
-                    <input type="text" class="form-control" id="alterptitle" v-model="problem.ptitle" placeholder="题目标题" required>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <label class="input-group-text" for="snamealter">#@{{station.sid}}</label>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="snamealter" v-model="station.sname" placeholder="站点名称" required>
+                            <label for="snamealter" class="form-label">名称</label>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="alterpdes" class="form-label">描述</label>
-                    <input type="text" class="form-control" id="alterpdes" v-model="problem.pdes" placeholder="题目描述" required>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <label class="input-group-text" for="sstatealter"><i class="bi" :class="{'bi-door-open':station.sstate==='o','bi-door-closed':station.sstate==='c'}"></i></label>
+                        <div class="form-floating">
+                            <select class="form-select" v-model="station.sstate" id="sstatealter" required>
+                                <option v-for="(sstate,index) in sstates" :key="index" :label="sstate" :value="index">@{{ station.sstate }}</option>
+                            </select>
+                            <label for="sstatealter" class="form-label">站点状态</label>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-12">
-                    <label for="alterineditor" class="form-label">输入描述</label>
-                    <textarea id="alterineditor" class="ckeditor"></textarea>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <label class="input-group-text" for="timealter"><i class="bi bi-calendar4-week"></i></label>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="timealter" v-model="station.sinfo.time" placeholder="开放时间描述【不填写则根据时间配置自动生成】" required>
+                            <label for="timealter" class="form-label">开放时间描述</label>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-12">
-                    <label for="alterouteditor" class="form-label">输出描述</label>
-                    <textarea id="alterouteditor" class="ckeditor"></textarea>
+                <div class="col-md-3">
+                    <div class="form-check form-switch form-check-inline">
+                        <label for="approvetimealter" class="form-check-label">预约确认时间限制</label>
+                        <input type="checkbox" class="form-check-input" id="approvetimealter" v-model="station.sinfo.approvetime" required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch form-check-inline">
+                        <label for="ralter" class="form-check-label">支持报备</label>
+                        <input type="checkbox" class="form-check-input" id="ralter" v-model="station.sinfo.r" required>
+                    </div>
+                    <div v-show="station.sinfo.r===true" class="input-group">
+                        <input type="number" class="form-control" id="rnumalter" min="0" v-model="station.sinfo.rnum" placeholder="报备人数/日【不填写表示无限制】" required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch form-check-inline">
+                        <label for="palter" class="form-check-label">支持核酸检测</label>
+                        <input type="checkbox" class="form-check-input" id="palter" v-model="station.sinfo.p" required>
+                    </div>
+                    <div v-show="station.sinfo.p===true" class="input-group">
+                        <input type="number" class="form-control" id="pnumalter" min="0" v-model="station.sinfo.pnum" placeholder="核酸检测人数/日【不填写表示无限制】" required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch form-check-inline">
+                        <label for="aalter" class="form-check-label">支持抗原检测</label>
+                        <input type="checkbox" class="form-check-input" id="aalter" v-model="station.sinfo.a" required>
+                    </div>
+                    <div v-show="station.sinfo.a===true" class="input-group">
+                        <input type="number" class="form-control" id="anumalter" min="0" v-model="station.sinfo.anum" placeholder="抗原检测人数/日【不填写表示无限制】" required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch form-check-inline">
+                        <label for="valter" class="form-check-label">支持疫苗接种</label>
+                        <input type="checkbox" class="form-check-input" id="valter" v-model="station.sinfo.v" required>
+                    </div>
+                    <div v-show="station.sinfo.v===true" class="input-group">
+                        <input type="number" class="form-control" id="vnumalter" min="0" v-model="station.sinfo.vnum" placeholder="疫苗接种人数/日【不填写表示无限制】" required>
+                    </div>
                 </div>
             </div>
             <hr class="my-4"><br><br>
-            <h4 class="mb-3">选项配置</h4>
+            <h4 class="mb-3"><i class="bi bi-calendar2-week-fill"></i> 时间配置</h4>
             <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="alterptype" class="form-label">类型</label>
-                    <select class="form-select" v-model="problem.ptype" id="alterptype" required>
-                        <option v-for="(ptype,index) in ptypes" :key="index" :label="ptype" :value="index">@{{ ptype }}</option>
-                    </select>
+                <!--配置方案-->
+                <div class="input-group justify-content-center">
+                    <a class="btn btn-outline-secondary" v-for="(stimeconfig,index) in stimeconfigs" :class="{'active':stimeconfig.status}" @click="changestimeconfig(index)" role="button">配置@{{index+1}}</a>
                 </div>
-                <div class="col-md-6">
-                    <label for="altertimelimit" class="form-label">时间限制</label>
-                    <div class="input-group">
-                    <input type="number" min="1" max="3000" class="form-control" id="altertimelimit" v-model="problem.poption.timelimit" placeholder="时间限制(ms)" required>
-                    <span class="input-group-text">ms</span>
+                <!--配置方案应用-->
+                <div v-for="(stimeconfig,index) in stimeconfigs" v-show="stimeconfig.status">
+                    <div class="card card-body">配置@{{index+1}}：@{{stimeconfig.text}}<a class="btn btn-outline-dark" @click="setstimeconfig(index)">应用</a></div>
+                </div>
+                <!--一周七天的配置-->
+                <div class="accordion" id="stimeaccordionalter">
+                    <div class="accordion-item" v-for="(sday,i) in station.stime">
+                        <h2 class="accordion-header input-group">
+                            <button class="accordion-button collapsed" style="width:90%" type="button" data-bs-toggle="collapse" :data-bs-target="'#stimealter'+i" aria-expanded="true" aria-controls="'stimealter'+i">
+                            @{{getDateType(i)}}
+                            </button>
+                            <button class="btn btn-outline-dark" @click="addstime(i)" style="width:10%"><i class="bi bi-plus-lg"></i></button>
+                        </h2>
+                        <div :id="'stimealter'+i" class="accordion-collapse collapse" data-bs-parent="#stimeaccordionalter" :aria-labelledby="'stimehalter'+i">
+                            <div v-for="(item,j) in sday" class="input-group p-1">
+                                <button class="btn btn-primary">#@{{j+1}}</button>
+                                <input type="time" class="form-control" v-model="item.start" placeholder="">
+                                <label class="input-group-text">~</label>
+                                <input type="time" class="form-control" v-model="item.end" placeholder="">
+                                <button class="btn btn-outline-dark" @click="upstime(i,j)" :disabled="j===0"><i class="bi bi-arrow-up"></i></button>
+                                <button class="btn btn-outline-dark" @click="downstime(i,j)" :disabled="j===station.stime[i].length-1"><i class="bi bi-arrow-down"></i></button>
+                                <button class="btn btn-outline-danger" @click="delstime(i,j)"><i class="bi bi-dash-lg"></i></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="alterspacelimit" class="form-label">空间限制</label>
+            </div>
+            <hr class="my-4"><br><br>
+            <h4 class="mb-3"><i class="bi bi-pin-map-fill"></i> 地址配置</h4>
+            <div class="row g-3">
+                <div class="col-md-4">
                     <div class="input-group">
-                    <input type="number" min="1" max="100000" class="form-control" id="alterspacelimit" v-model="problem.poption.spacelimit" placeholder="空间限制(KB)" required>
-                    <span class="input-group-text">KB</span>
+                        <label class="input-group-text" for="slatalter"><i class="bi bi-globe2"></i></label>
+                        <div class="form-floating">
+                            <input type="number" class="form-control" id="slatalter" min="3" max="54" v-model="station.slat" placeholder="纬度(°N)" required>
+                            <label for="slatalter" class="form-label">纬度(°N)</label>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="altertip" class="form-label">提示</label>
-                    <input type="text" class="form-control" id="altertip" v-model="problem.poption.tip" placeholder="提示" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="altersource" class="form-label">来源</label>
-                    <input type="text" class="form-control" id="altertsource" v-model="problem.poption.source" placeholder="题目来源" required>
-                </div>
-                <div class="col-md-12">
-                    <label for="altertids" class="form-label">标签</label>
+                <div class="col-md-4">
                     <div class="input-group">
-                        <button v-for="(tid,index) in problem.tids" type="button" class="btn btn-outline-dark" :key="index" @click="deltid(index)">@{{ tags[tid].tname }} <i class="bi bi-x-lg"></i></button>
-                        <select class="form-select" v-model="tid" id="altertids">
-                            <option v-for="tag in tags0" :key="tag.tid" :label="tag.tname" :value="tag.tid">@{{ tag.tname }}</option>
-                            <option label="未选择标签" value="0" disabled="disabled"></option>
+                        <label class="input-group-text" for="slngalter"><i class="bi bi-globe"></i></label>
+                        <div class="form-floating">
+                            <input type="number" class="form-control" id="slngalter" min="73" max="136" v-model="station.slng" placeholder="经度(°E)" required>
+                            <label for="slngalter" class="form-label">经度(°E)</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <label class="input-group-text" for="addralter"><i class="bi bi-geo-alt"></i></label>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="addralter" v-model="station.sinfo.addr" placeholder="站点地址描述" required>
+                            <label for="addralter" class="form-label">地址描述</label>
+                        </div>
+                    </div>
+                </div>
+                <div v-show="state_ids!==undefined&&state_ids.length>0" class="col-md-4">
+                    <div class="form-floating">
+                        <select class="form-select" v-model="station.state_id" @change="getCities()" id="state_idalter" required>
+                            <option label="请选择省市区" value="">请选择省市区</option>
+                            <option v-for="state_id in state_ids" :key="state_id.id" :label="state_id.cname" :value="state_id.id">@{{ state_id.cname }}</option>
                         </select>
-                        <button type="button" class="btn btn-outline-success" @click="inserttid">添加</button>
+                        <label for="state_idalter" class="form-label">省市区</label>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="alterrule" class="form-label">规则</label>
-                    <input type="text" class="form-control" id="alterrule" v-model="rule" placeholder="规则" required>
+                <div v-show="city_ids!==undefined&&city_ids.length>0" class="col-md-4">
+                    <div class="form-floating">
+                        <select class="form-select" v-model="station.city_id" @change="getRegions()" id="city_idalter" required>
+                            <option label="请选择地级市" value="">请选择地级市</option>
+                            <option v-for="city_id in city_ids" :key="city_id.id" :label="city_id.cname" :value="city_id.id">@{{ city_id.cname }}</option>
+                        </select>
+                        <label for="city_idalter" class="form-label">地级市</label>
+                    </div>
+                </div>
+                <div v-show="region_ids!==undefined&&region_ids.length>0" class="col-md-4">
+                    <div class="form-floating">
+                        <select class="form-select" v-model="station.region_id" id="region_idalter" required>
+                            <option label="请选择区县" value="">请选择区县</option>
+                            <option v-for="region_id in region_ids" :key="region_id.id" :label="region_id.cname" :value="region_id.id">@{{ region_id.cname }}</option>
+                        </select>
+                        <label for="region_idalter" class="form-label">区县</label>
+                    </div>
                 </div>
             </div>
             <hr class="my-4"><br><br>
-            <h4 class="mb-3">详细描述</h4>
-            <textarea id="alterdeseditor" class="ckeditor"></textarea>
-            <hr class="my-4"><br><br>
-            <h4 class="mb-3">示例配置【用户测试使用】<button type="button" class="btn btn-outline-info" @click="insertcase"><i class="bi bi-plus-lg"></i> 添加示例</button></h4>
+            <h4 class="mb-3"><i class="bi bi-person-lines-fill"></i> 站点管理员【序号小者优先级高】</h4>
+            <div class="input-group"><input class="form-control" @keyup.enter="insertuid" type="text" v-model="uid" placeholder="请输入身份证明/邮箱/UID"> <button type="button" class="btn btn-outline-success" @click="insertuid"><i class="bi bi-person-plus-fill"></i> 添加管理员</button></div>
             <div class="row g-3">
-                <div class="col-md-12" v-for="(caseitem,index) in problem.poption.cases" :key="index">
-                    <div class="input-group">
-                        <button type="button" class="badge bg-dark" disabled>@{{ index+1 }}</button>
-                        <textarea type="text" rows="3" style="resize:none;" class="form-control" v-model="caseitem.in" placeholder="输入" required></textarea>
-                        <textarea type="text" rows="3" style="resize:none;" class="form-control"  v-model="caseitem.out" placeholder="输出" required></textarea>
-                        <button type="button" class="btn btn-outline-danger" @click="delcase(index)"><i class="bi bi-x-lg"></i></button>
-                        <button type="button" class="btn btn-outline-info" @click="upcase(index)" :disabled="index===0"><i class="bi bi-arrow-up"></i></button>
-                        <button type="button" class="btn btn-outline-secondary" @click="downcase(index)" :disabled="index===problem.poption.cases.length-1"><i class="bi bi-arrow-down"></i></button>
-                    </div>
+                <div class="col-md-12 input-group" v-for="(admin,index) in station.sadmin" :key="index">
+                    <button type="button" class="badge bg-dark" disabled>@{{ index+1 }}</button>
+                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" :href="'/user/'+admin.uid">@{{ "#"+admin.uid+" "+admin.uname }}</a>
+                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" :href="'mailto:'+admin.uemail">@{{ admin.uemail }}</a>
+                    <button type="button" class="btn btn-outline-danger" @click="deluid(index)"><i class="bi bi-x-lg"></i></button>
+                    <button type="button" class="btn btn-outline-info" @click="upuid(index)" :disabled="index===0"><i class="bi bi-arrow-up"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" @click="downuid(index)" :disabled="index===station.sadmin.length-1"><i class="bi bi-arrow-down"></i></button>
                 </div>
             </div>
             <hr class="my-4"><br><br>
-            <h4 class="mb-3">测评用例配置【评测使用】<a target="_blank" href="http://oj.maythorn.top/notice/12" class="btn btn-outline-info">用例格式详解</a></i>
-                <input type="file" class="form-control" @change="getcases($event)" accept=".zip" id="alterfilepath" required></h4>
-                <label class="input-group-text" for="alterfilepath">上传zip压缩包文件 <i class="bi bi-file-zip-fill"></i></label>
+            <h4 class="mb-3"><i class="bi bi-person-workspace"></i> 区域管理员【可管理区域内站点】</h4>
             <div class="row g-3">
-                <div class="col-md-12" v-for="(pcase,index) in problem.pcases" :key="index">
-                    <div class="input-group">
-                        <button type="button" class="badge bg-dark" disabled>@{{ index+1 }}</button>
-                        <span class="form-control" v-text="pcase.in"></span>
-                        <span class="form-control" v-text="pcase.out"></span>
-                        <input class="form-control" type="text" v-model="pcase.score" placeholder="分数">
-                    </div>
+                <div class="col-md-12 input-group" v-for="(admin,index) in station.aadmin" :key="index">
+                    <button type="button" class="badge bg-dark" disabled>@{{ index+1 }}</button>
+                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" :href="'/user/'+admin.uid">@{{ "#"+admin.uid+" "+admin.uname }}</a>
+                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" :href="'mailto:'+admin.uemail">@{{ admin.uemail }}</a>
+                    <button type="button" class="text-truncate badge bg-dark" disabled>@{{ getAAdminTypes(admin.types) }}</button>
                 </div>
             </div>
+            <hr class="my-4"><br><br>
+            <h4 class="mb-3"><i class="bi bi-body-text"></i> 站点描述</h4>
+            <textarea id="altereditor" class="ckeditor"></textarea>
         </div>
         <x-slot name="footer">
-            <div v-show="file!=null" class="progress" style="width: 200px">
-                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" :style="{width:fileprogress + '%'}" ></div>
-            </div>
-            <button type="button" class="btn btn-outline-success"  @click="alter">修改</button>
+            <button type="button" class="btn btn-outline-success"  @click="alter"><i class="bi bi-building-fill-gear"></i> 修改</button>
         </x-slot>
+
+    <x-modal id="station-modal" title="更换站点图片" class="modal-fullscreen">
+        <form id="uploadstation" class="avatar-form" :action="'{!! config('var.asu') !!}'+station.sid" enctype="multipart/form-data" method="post">
+            {{ csrf_field() }}
+            <div class="avatar-body">
+                <!-- Upload image and data -->
+                <div class="avatar-upload">
+                    <input class="avatar-src" name="avatar_src" type="hidden">
+                    <input class="avatar-src" name="sid" :value="station.sid" type="hidden">
+                    <input class="avatar-data" name="avatar_data" type="hidden">
+                    <label for="avatarInput">本地上传</label>
+                    <input class="avatar-input" id="avatarInput" name="avatar_file" type="file">
+                </div>
+
+                <!-- Crop and preview -->
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="avatar-wrapper"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="avatar-preview preview-avatar-lg"></div>
+                        <div class="avatar-preview preview-avatar-md"></div>
+                        <div class="avatar-preview preview-avatar-sm"></div>
+                    </div>
+                </div>
+                <x-slot name="footer">
+                    <div class="row">
+                        <div class="input-group">
+                            <input class="avatar-btns" type="range" min="-180" max="180" data-method="rotate" data-option="45" value="0" class="form-range" class="" id="station-btns">
+                            <button data-method="rotate" value="0" class="btn btn-outline-info avatar-btns" type="submit">重置</button>
+                            <button form="uploadstation" class="btn btn-outline-success btn-block avatar-save" type="submit">保存</button>
+                        </div>
+                    </div>
+                </x-slot>
+            </div>
+        </form>
+    </x-modal>
     </x-modal>
         <script>
 
-            let altereditor={des:null,in:null,out:null};
+            let altereditor=null;
             const alterapp=Vue.createApp({
                 data() {
                     return{
-                        problem:{
-                            pid:"",
-                            ptitle:"",
-                            pdes:"",
-                            ptype: "",
-                            pinfo:"",
-                            poption:{
-                                cases:[],
-                                in:"",
-                                out:"",
-                                timelimit:"",
-                                spacelimit:"",
-                                source:"",
+                        index:0,
+                        uid:"",
+                        sadmin:[],
+                        station:{
+                            sname: "",
+                            sstate: "c",
+                            state_id:"",
+                            city_id:"",
+                            region_id:"",
+                            slat:43,
+                            slng:125,
+                            aadmin:[],
+                            sadmin:[],
+                            sinfo:{
+                                approvetime:false,
+                                p:false,
+                                a:false,
+                                r:false,
+                                v:false,
+                                pnum:null,
+                                anum:null,
+                                rnum:null,
+                                vnum:null,
+                                addr:"",
+                                time:"",
+                                des: "",
                             },
-                            pcases:[],
-                            tids:"",
+                            stime:[
+                                [{start:"",end:""}],[{start:"",end:""}],[{start:"",end:""}],[{start:"",end:""}],[{start:"",end:""}],[{start:"",end:""}],[{start:"",end:""}]
+                            ],
                         },
 
-                        rule: "",
-                        tid:"0",
-                        // tip: "",
-                        // timelimit: "100",
-                        // spacelimit: "1000",
-                        // cases: [
-                        //     {in:"",out:""}
-                        // ],
-
-                        tags0:[],
-                        tags:[],
-                        ptypes:[],
-                        file: null,
-                        fileprogress: 0,
+                        sstates:{
+                            o:"开放",
+                            c:"关闭"
+                        },
+                        state_ids:[],
+                        city_ids:[],
+                        region_ids:[],
+                        stimeconfigs:{!! json_encode($config_station['stimeconfigs']) !!},
                     }
                 },
                 mounted(){
                     this.init();
                 },
                 methods:{
-                    getcases(event){
-                        this.file=event.currentTarget.files[0];
-                        this.problem.pcases=[];
-                        let that=this;
-                        JSZip.loadAsync(this.file)
-                        .then(function(zip) {
-                            // var dateAfter = new Date();
-                            // $title.append($("<span>", {
-                            //     "class": "small",
-                            //     text:" (loaded in " + (dateAfter - dateBefore) + "ms)"
-                            // }));
-                            let pcases=[];
-                            zip.forEach(function (relativePath, zipEntry) {
-                                pcases.push(zipEntry.name);
-                            });
-                            for(i=1;i<=pcases.length/2;++i){
-                            console.log(i);
-                                if(pcases.includes(i+".in")&&pcases.includes(i+".out")){
-                                    that.problem.pcases.push({in:(i+".in"),out:(i+".out"),score:""});
-                                }else{
-                                    if(i===1){
-                                        echoMsg("#alter-msg",{status:4,message:"样例文件序列有误！"});
-                                    }
-                                    break;
-                                }
-                            }
-                            console.log(that.problem.pcases);
-                        }, function (e) {
-                            echoMsg("#alter-msg",{status:4,message:e.message});
-                        });
-                    },
-                    inserttid(){
-                        if(!this.problem.tids.includes(this.tid)){
-                            if(this.problem.tids.length>=6){
-                                echoMsg("#alter-msg",{status:4,message:"标签数量不得超过6个"});
-                            }else if(this.tid in this.tags)
-                                this.problem.tids.push(this.tid);
-                        }else{
-                            echoMsg("#alter-msg",{status:4,message:"该标签已添加"});
-                        }
-                    },
-                    deltid(index){
-                        this.problem.tids.splice(index,1);
-                    },
-                    insertcase(){
-                        this.problem.poption.cases.push({in:"",out:""});
-                    },
-                    delcase(index){
-                        this.problem.poption.cases.splice(index,1);
-                    },
-                    upcase(index){
-                        if(index>0){
-                            let tem=this.problem.poption.cases[index];
-                            this.problem.poption.cases[index]=this.problem.poption.cases[index-1];
-                            this.problem.poption.cases[index-1]=tem;
-                        }
-                    },
-                    downcase(index){
-                        if(index<this.cases.length-1){
-                            let tem=this.problem.poption.cases[index];
-                            this.problem.poption.cases[index]=this.problem.poption.cases[index+1];
-                            this.problem.poption.cases[index+1]=tem;
-                        }
-                    },
-                    alter(){
-                        let data={
-                            ptitle:this.problem.ptitle,
-                            pdes:this.problem.pdes,
-                            ptype:this.problem.ptype,
-                            pinfo:altereditor.des.getData(),
-                            pcases:JSON.stringify(this.problem.pcases),
 
-                            in:altereditor.in.getData(),
-                            out:altereditor.out.getData(),
-                            tip:this.problem.poption.tip,
-                            source:this.problem.poption.source,
-                            tids:JSON.stringify(this.problem.tids),
-                            timelimit: this.problem.poption.timelimit,
-                            spacelimit:this.problem.poption.spacelimit,
-                            cases:JSON.stringify(this.problem.poption.cases),
-                            utype:"{{ $utype }}",
+                    //修改
+                    alter(){
+                        //this.station.sadmin.forEach(v=>this.sadmin.push(v.uid));
+                        let data={
+                            sname:this.station.sname,
+                            sstate:this.station.sstate,
+                            state_id:this.station.state_id,
+                            city_id:this.station.city_id,
+                            region_id:this.station.region_id,
+                            slat:this.station.slat,
+                            slng:this.station.slng,
+                            approvetime:this.station.sinfo.approvetime,
+                            p:this.station.sinfo.p,
+                            a:this.station.sinfo.a,
+                            v:this.station.sinfo.v,
+                            r:this.station.sinfo.r,
+                            pnum:this.station.sinfo.pnum,
+                            anum:this.station.sinfo.anum,
+                            vnum:this.station.sinfo.vnum,
+                            rnum:this.station.sinfo.rnum,
+                            addr:this.station.sinfo.addr,
+                            time:this.station.sinfo.time,
+                            des:altereditor.getData(),
+                            stime:JSON.stringify(this.station.stime),
+                            sadmin:JSON.stringify(this.sadmin),
                             _token:"{{csrf_token()}}"
                         };
-                        let fileFormData=new FormData();
-                        for(i in data){
-                            fileFormData.append(i,data[i]);
-                        }
-                        if(this.file!==null)
-                            fileFormData.append('pcasesfile',this.file,this.file.name);
                         console.log(data);
-                        $.ajax({
-                            method:'POST',
-                            url:"{!! config('var.pa') !!}"+this.problem.pid,
-                            data:fileFormData,
-                            contentType:false,
-                            processData:false,
-                            success:function(result){
-                            let json = isJSON(result);
-                                echoMsg("#alter-msg",json);
+                        let that = this;
+                        getData("{!! config('var.asa') !!}"+that.station.sid,function(json){
+                            if(json.status===1){
+                                getData("{!! config('var.asl') !!}"+"?sid="+that.station.sid,function(tmp){
+                                    stationlistapp.stations[that.index]=tmp.data.stations.data[0];
+                                },null);
                             }
-                        });
-                        // getData("{!! config('var.pa') !!}"+this.problem.pid,null,"#alter-msg",data);
-                        
+                        },"#alter-msg",data);
                     },
+                    //初始化载入原来数据
                     init(){
-                        CKSource.Editor.create( document.querySelector( '#alterdeseditor' ),editorconfig)
-                        .then( newEditor => {altereditor.des=newEditor;} )
-                        .catch( error => {console.error( error );} );
-                        CKSource.Editor.create( document.querySelector( '#alterineditor' ),editorconfig)
-                        .then( newEditor => {altereditor.in=newEditor;} )
-                        .catch( error => {console.error( error );} );
-                        CKSource.Editor.create( document.querySelector( '#alterouteditor' ),editorconfig)
-                        .then( newEditor => {altereditor.out=newEditor;} )
-                        .catch( error => {console.error( error );} );
-                        this.ptypes=isJSON({!! json_encode($config_problem['type'],JSON_UNESCAPED_UNICODE) !!});
-                        this.typekey={!! json_encode($config_problem['typekey'][$utype]) !!};
-                        for(index in this.ptypes)
-                            if(!this.typekey.includes(index))
-                                delete this.ptypes[index];
+                        CKSource.Editor.create( document.querySelector( '#altereditor' ),editorconfig)
+                            .then( newEditor => {altereditor=newEditor;} )
+                            .catch( error => {console.error( error );} );
                         let that = this;
                         document.getElementById('alter').addEventListener('show.bs.modal',function(event){
-                            const pid = event.relatedTarget.getAttribute('data-bs-pid');
-                            getData("{!! isset($utype)&&$utype=='a'?config('var.apg'):config('var.pg') !!}"+pid,
+                            const sid = event.relatedTarget.getAttribute('data-bs-sid');
+                            that.index = event.relatedTarget.getAttribute('data-bs-index');
+                            getData("{!! config('var.asg') !!}"+sid,
                             function(json){
                                 if(json.data!==null){
-                                    getTags(json,that.tags,that.tags0);
-                                    let problem=json.data.problem;
-                                    document.title+=problem.ptitle;
-                                    problem.pcases=isJSON(problem.pcases,true);
-                                    problem.poption=isJSON(problem.poption);
-                                    if(!('cases' in problem.poption)){
-                                        problem.poption.cases=[];
+                                    let station=json.data.station;
+                                    document.title+="-"+station.sname;
+                                    station.sinfo=isJSON(station.sinfo);
+                                    if(!('a' in station.sinfo)){
+                                        station.sinfo.a=false;
                                     }
-                                    if(!('in' in problem.poption)){
-                                        problem.poption.in="";
+                                    if(!('p' in station.sinfo)){
+                                        station.sinfo.p=false;
                                     }
-                                    if(!('out' in problem.poption)){
-                                        problem.poption.out="";
+                                    if(!('r' in station.sinfo)){
+                                        station.sinfo.r=false;
                                     }
-                                    if(!('timelimit' in problem.poption)){
-                                        problem.poption.timelimit="100";
+                                    if(!('v' in station.sinfo)){
+                                        station.sinfo.v=false;
                                     }
-                                    if(!('spacelimit' in problem.poption)){
-                                        problem.poption.spacelimit="1000";
+                                    if(!('des' in station.sinfo)){
+                                        station.sinfo.des="";
                                     }
-                                    if(!('source' in problem.poption)){
-                                        problem.poption.source="";
+                                    if(!('addr' in station.sinfo)){
+                                        station.sinfo.addr="";
                                     }
-                                    if(!('tip' in problem.poption)){
-                                        problem.poption.tip="";
+                                    if(!('time' in station.sinfo)){
+                                        station.sinfo.time="";
                                     }
-                                    that.problem=problem;
-                                    altereditor.des.setData(that.problem.pinfo);
-                                    altereditor.in.setData(that.problem.poption.in);
-                                    altereditor.out.setData(that.problem.poption.out);
-                                    console.log(that.problem);
+                                    if(!('anum' in station.sinfo)){
+                                        station.sinfo.anum=0;
+                                    }
+                                    if(!('pnum' in station.sinfo)){
+                                        station.sinfo.pnum=0;
+                                    }
+                                    if(!('rnum' in station.sinfo)){
+                                        station.sinfo.rnum=0;
+                                    }
+                                    if(!('vnum' in station.sinfo)){
+                                        station.sinfo.vnum=0;
+                                    }
+                                    station.stime=isJSON(station.stime,true);
+                                    if(station.stime===[]||station.stime.length!==7){
+                                        station.stime=[[],[],[],[],[],[],[]];
+                                    }
+                                    station.sadmin.forEach(v=>that.sadmin.push(v.uid));
+                                    that.station=station;
+                                    ///service/system/getaddrlist，把这个地方找出来
+                                    initaddress(that,"{!! config('var.sla') !!}",that.station);
+                                    altereditor.setData(that.station.sinfo.des);
+                                    console.log(that.station);
                                 }
-                            },"#alter-msg",null,jump=false);
+                            },"#msg");
                         });
+                    },
+                    getAAdminTypes(str){
+                        const tmp = isJSON(str);
+                        let retval="";
+                        if(tmp.indexOf("s")>=0) retval+="省市区";
+                        if(tmp.indexOf("c")>=0) retval+=(retval===""?"":"/")+"地级市";
+                        if(tmp.indexOf("r")>=0) retval+=(retval===""?"":"/")+"区县";
+                        return retval;
+                    },
+
+                    //得到日期的类型
+                    getDateType(i){
+                        return DAYTYPE[i];
+                    },
+
+                    //增加时间段
+                    addstime(i){
+                        this.station.stime[i].push({start:"",end:""});
+                    },
+
+                    //删除时间段
+                    delstime(i,j){
+                        this.station.stime[i].splice(j,1);
+                    },
+
+                    //上移时间
+                    upstime(i,j){
+                        if(j>0){
+                            let tem=this.station.stime[i][j];
+                            this.station.stime[i][j]=this.station.stime[i][j-1];
+                            this.station.stime[i][j-1]=tem;
+                        }
+                    },
+
+                    //下移时间
+                    downstime(i,j){
+                        if(j<this.station.stime[i].length-1){
+                            let tem=this.station.stime[i][j];
+                            this.station.stime[i][j]=this.station.stime[i][j+1];
+                            this.station.stime[i][j+1]=tem;
+                        }
+                    },
+
+                    //应用配置方案
+                    setstimeconfig(index){
+                        this.station.stime=this.stimeconfigs[index].stime;
+                    },
+
+                    //改变时间配置方案
+                    changestimeconfig(i){
+                        this.stimeconfigs[i].status=!this.stimeconfigs[i].status;
+                        if(this.stimeconfigs[i].status){
+                            for(j in this.stimeconfigs){
+                                if(i===j-'0'){
+                                    continue;
+                                }
+                                this.stimeconfigs[j].status=false;
+                            }
+                        }
+                    },
+                    insertuid(){
+                        if(!this.sadmin.includes(this.uid)){
+                            let that=this;
+                            getData("{!! config('var.aug') !!}"+this.uid,
+                            function(json){
+                                if(json.data!==null&&'user' in json.data){
+                                    that.sadmin.push(that.uid);
+                                    that.station.sadmin.push(json.data.user);
+                                    echoMsg("#alter-msg",{status:1,message:"获取用户数据成功！"});
+                                }else{
+                                    echoMsg("#alter-msg",{status:4,message:"查询不到该编号对应的用户数据！"});
+                                }
+                            },echo=false,data=null,jump=false);
+                        }else{
+                            echoMsg("#alter-msg",{status:4,message:"该用户已添加"});
+                        }
+                    },
+                    deluid(index){
+                        this.sadmin.splice(index,1);
+                        this.station.sadmin.splice(index,1);
+                    },
+
+                    upuid(index){
+                        if(index>0){
+                            let tem=this.sadmin[index];
+                            this.sadmin[index]=this.sadmin[index-1];
+                            this.sadmin[index-1]=tem;
+                            tem=this.station.sadmin[index];
+                            this.station.sadmin[index]=this.station.sadmin[index-1];
+                            this.station.sadmin[index-1]=tem;
+                        }
+                    },
+                    downuid(index){
+                        if(index<this.sadmin.length-1){
+                            let tem=this.sadmin[index];
+                            this.sadmin[index]=this.sadmin[index+1];
+                            this.sadmin[index+1]=tem;
+                            tem=this.station.sadmin[index];
+                            this.station.sadmin[index]=this.station.sadmin[index+1];
+                            this.station.sadmin[index+1]=tem;
+                        }
                     },
                 }
             }).mount("#alter");

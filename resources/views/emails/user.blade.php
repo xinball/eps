@@ -106,12 +106,13 @@
                                                     <a href="{{ $option['link'] }}" style="-webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">{{ $option['text'] }}</a>
                                                 </p>
                                                 <p>
-                                                    或复制此链接至浏览器打开：<a href="{{ $option['link'] }}" style="-webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">{{ $option['link'] }}</a>
+                                                    或复制此链接至浏览器打开：<br/><a href="{{ $option['link'] }}" style="-webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">{{ $option['link'] }}</a>
                                                 </p>
                                             </div>
                                             <div id="cta">
-                                                该链接有效期至 {{ $option['expire'] }}
-                                                <a href="https://eps.yono.top/active" style="-webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">点击此处重新激活</a>
+                                                该链接有效期至 {{ $option['expire'] }}<br/>
+                                                <a href="https://eps.yono.top/user/active" style="-webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">点击此处申请重新激活</a><br/>
+                                                <a href="https://eps.yono.top/user/forget" style="-webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">点击此处申请重置密码</a>
                                             </div>
                                         </td>
                                     </tr>

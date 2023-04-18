@@ -27,23 +27,27 @@ body {
     -ms-user-select: text;
     user-select: text;
 }
+.modal{
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
+}
 /*change*/
 .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link {
     color: #495057;
     background-color: #f5f5f5;
     border-color: #dee2e6 #dee2e6 #fff;
 }
+/*
 .form-login {
     max-width: 500px;
     width: 100%;
-    margin: auto;/**/
+    margin: auto;
     padding: 25px;
 }
-
-.form-login .checkbox {
-    margin-top: 15px;
-    font-weight: 400;
-}
+8
 
 .form-login .form-floating:focus-within {
     z-index: 2;
@@ -52,29 +56,151 @@ body {
     margin-top:5px;
 }
 
-.form-login input[type="email"] {
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
-}
-.form-login input[type="password"] {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-}
 .form-login button {
     margin-top: 15px;
     margin-bottom: 15px;
 }
+*/
+.form-login .input-group .password-eye{
+    position: absolute;
+    right: 10px;
+    z-index: 5;
+    height: -webkit-fill-available;
+    border: 0px;
+}
+.form-login .input-group {
+    padding: 5px;
+}
+.form-login button {
+    margin-bottom: 10px;
+    margin-top: 5px;
+}
+.container{
+    padding:0px;
+}
+.bg-ac {
+    --bs-bg-opacity: 1;
+    background-color: greenyellow !important;
+}
+.text-pink{
+    color: hotpink;
+}
+.thead,.thead a{
+    font-size: small;
+    font-weight:bold;
+    vertical-align: middle;
+    align-self:center;
+}
+.noexpand{
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+.noexpand::-ms-expand{
+    display: none;
+}
+.item {
+    /* gap: 0.8rem !important; */
+    border: 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125) !important;
+    /* position: relative; */
+    /* display: block; */
+    padding: 25px 0 10px 0;
+    /* color: #212529; */
+    text-decoration: none;
+    background-color: #fff;
+    margin:0;
+}
+.list-group-item.active{
+    background: radial-gradient(deepskyblue, transparent);
+}
+.list-group-item.delete{
+    background: radial-gradient(black, transparent);
+}
+.item .row{
+    margin:0;
+}
+.item .row div{
+    padding: 0;
+}
+/* .list .item div{
+    padding: 0px;
+} */
+.pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover,.page-link, .page-link:focus, .page-link:hover {
+    z-index: 3;
+    color: #fff;
+    cursor: default;
+    background-color: hotpink;
+    border-color: lightpink;
+}
+/* .page-item.active .page-link {
+    z-index: 3;
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+} */
+.pagination>li>a, .pagination>li>span {
+    position: relative;
+    float: left;
+    padding: 6px 12px;
+    margin-left: -1px;
+    /* line-height: 1.42857143; */
+    color: #3f3f3f;
+    text-decoration: none;
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+.page-link:focus {
+    box-shadow: 0 0 0 0.25rem lightpink;
+}
+.page-link{
+
+    line-height: 27px;
+}
+.pagination-lg>li:last-child>a, .pagination-lg>li:last-child>span {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+.pagination>li:last-child>a, .pagination>li:last-child>span {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+.pagination>.active>span>label>input{
+    z-index: 3;
+    color: #fff;
+    cursor: default;
+    background-color: hotpink;
+    font-size: 18px;
+    border: 0 lightpink;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+.pagination>.active>span>label>input:focus{
+    box-shadow: 0 0 0 0.25rem lightpink;
+    outline: 0;
+}
 .btn-circle{
     border-radius: 32px;
 }
+.btn-pink:focus,.btn-pink:hover{
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem #ff69b440;
+}
 .btn-pink{
+    border-color: #ff69b440 !important;
     background-color: hotpink;
     color: white;
 }
 .btn-fill{
     width: -webkit-fill-available;
 }
+.btn-deepskyblue:focus,.btn-deepskyblue:hover{
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
 .btn-deepskyblue{
+    border-color: rgba(13, 110, 253, 0.25) !important;
     background-color: deepskyblue;
     color: white;
 }

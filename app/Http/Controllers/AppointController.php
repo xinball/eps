@@ -133,15 +133,14 @@ class AppointController extends Controller
         $params=$request->all();
         foreach ($params as $key=>$v){
             if($v!==""&&$v!==null){
-                if($key==="cstart"&&strtotime($v)){
+                if($key==="start"&&strtotime($v)){
                     $where[]=['atime','>=',$v];
-                }elseif($key==="cend"&&strtotime($v)){
+                }elseif($key==="end"&&strtotime($v)){
                     $where[]=['atime','<=',$v];
-                }elseif($key==="state"&&in_array($v,$this->config_appoint['statekey']['total'])){
+                }elseif($key==="state"&&in_array($v,$this->config_appoint['statekey']['all'])){
                     $where[]=['astate','=',$v];
                 }elseif($key==="type"&&in_array($v,['p','r','v'])){
                     $where[]=['atype','=',$v];
-                    $sidsql = $sidsql->where("type","=",$v);
                 }elseif($key==="uid"||$key==="sid"||$key==="aid"){
                     $where[]=[$key,'=',$v];
                 }
@@ -226,9 +225,7 @@ class AppointController extends Controller
 
     
     public function del($aid){
-        if($this->luser===null){
-            $this->errMsg="您没有权限删除该预约，请重新登录用户！";
-        }else{
+        if($this->luser!==null){
             $appoint=Appoint::where('aid',$aid)->first();
             if($appoint!==null){
                 if($appoint->uid===$this->luser->uid){
@@ -251,6 +248,8 @@ class AppointController extends Controller
             }else{
                 $this->errMsg="该预约不存在！";
             }
+        }else{
+            $this->errMsg="您没有权限删除该预约，请重新登录用户！";
         }
         $this->getResult();
         return $this->result->toJson();
@@ -457,50 +456,49 @@ class AppointController extends Controller
         return $this->result->toJson();
     }
     public function alter(Request $request,$aid){
-        if($this->luser===null){
-            $this->errMsg="您没有权限修改预约，请重新登录用户！";
-            $this->getResult();
-            return $this->result->toJson();
-        }
-        $appoint=Appoint::where('aid',$aid)->first();
-        if($appoint!==null){
-            if($appoint->uid===$this->luser->uid){
-                if($appoint->astate==='n'||$appoint->astate==='r'){
-                    $sid=$request->post("sid",null);
-                    $atype=$request->post("atype",null);
-                    $atime=$request->post("atime",null);
-                    $msg=$request->post('msg',null);
-                    if(!$this->check($sid,$atype,$msg,$atime)){
-                        $this->getResult();
-                        return $this->result->toJson();
-                    }
-                    $ainfo=[
-                        'msg'=>$msg
-                    ];
-                    $appoint->uid=$this->luser->uid;
-                    $appoint->sid=$sid;
-                    $appoint->ainfo=json_encode($ainfo,JSON_UNESCAPED_UNICODE);
-                    $appoint->atype=$atype;
-                    $appoint->atime=$atime;
-                    $appoint->astate='n';
-                    if($appoint->update()){
-                        $this->insertAprocess($appoint->aid,$this->luser->uid,'a',json_encode($appoint,JSON_UNESCAPED_UNICODE));
-                        $this->successMsg="预约修改成功！";
+        if($this->luser!==null){
+            $appoint=Appoint::where('aid',$aid)->first();
+            if($appoint!==null){
+                if($appoint->uid===$this->luser->uid){
+                    if($appoint->astate==='n'||$appoint->astate==='r'){
+                        $sid=$request->post("sid",null);
+                        $atype=$request->post("atype",null);
+                        $atime=$request->post("atime",null);
+                        $msg=$request->post('msg',null);
+                        if(!$this->check($sid,$atype,$msg,$atime)){
+                            $this->getResult();
+                            return $this->result->toJson();
+                        }
+                        $ainfo=[
+                            'msg'=>$msg
+                        ];
+                        $appoint->uid=$this->luser->uid;
+                        $appoint->sid=$sid;
+                        $appoint->ainfo=json_encode($ainfo,JSON_UNESCAPED_UNICODE);
+                        $appoint->atype=$atype;
+                        $appoint->atime=$atime;
+                        $appoint->astate='n';
+                        if($appoint->update()){
+                            $this->insertAprocess($appoint->aid,$this->luser->uid,'a',json_encode($appoint,JSON_UNESCAPED_UNICODE));
+                            $this->successMsg="预约修改成功！";
+                        }else{
+                            $this->errMsg='预约修改失败！';
+                        }
+                    }elseif($appoint->astate==='s'){
+                        $this->warnMsg="该预约已申请，如需修改，请撤销后再次申请！";
+                    }elseif($appoint->astate==='f'){
+                        $this->errMsg="该预约已完成，无法修改！";
                     }else{
-                        $this->errMsg='预约修改失败！';
+                        $this->errMsg="该预约已删除，无法修改！";
                     }
-                }elseif($appoint->astate==='s'){
-                    $this->warnMsg="该预约已申请，如需修改，请撤销后再次申请！";
-                }elseif($appoint->astate==='f'){
-                    $this->errMsg="该预约已完成，无法修改！";
                 }else{
-                    $this->errMsg="该预约已删除，无法修改！";
+                    $this->errMsg="您不是该预约的创建者，无法修改！";
                 }
             }else{
-                $this->errMsg="您不是该预约的创建者，无法修改！";
+                $this->errMsg="该预约不存在！";
             }
         }else{
-            $this->errMsg="该预约不存在！";
+            $this->errMsg="您没有权限修改预约，请重新登录用户！";
         }
         $this->getResult();
         return $this->result->toJson();
@@ -539,7 +537,7 @@ class AppointController extends Controller
         $this->getResult();
         return $this->result->toJson();
     }
-    public function insertAprocess($aid,$uid,$type,$msg){
+    private function insertAprocess($aid,$uid,$type,$msg){
         $aprocess=new Aprocess();
         $aprocess->aid=$aid;
         $aprocess->uid=$uid;

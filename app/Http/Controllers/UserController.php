@@ -29,26 +29,26 @@ class UserController extends Controller
         return view('user.index')->with('result',$this->get($uid));
     }
     public function settingview(Request $request){
-        if ($auth=$this->authUserView($request)){     //为了验证用户是否登陆的，没有登陆就传一个authUserView函数返回的未登录页面
-            return $auth;
+        if (!$this->luser){//为了验证用户是否登陆的，没有登陆就传一个authUserView函数返回的未登录页面
+            return $this->defaultUserView($request);
         }
         return view('user.setting')->with('seactive',true)->with('result',$this->get($this->luser->uid));
     }
     public function appointview(Request $request){
-        if ($auth=$this->authUserView($request)){
-            return $auth;
+        if (!$this->luser){
+            return $this->defaultUserView($request);
         }
         return view('user.appoint')->with('aactive',true);
     }
     public function reportview(Request $request){
-        if ($auth=$this->authUserView($request)){
-            return $auth;
+        if (!$this->luser){
+            return $this->defaultUserView($request);
         }
         return view('user.report')->with('rcactive',true);
     }
     public function tagview(Request $request){
-        if ($auth=$this->authUserView($request)){
-            return $auth;
+        if (!$this->luser){
+            return $this->defaultUserView($request);
         }
         $tags=Tag::all();
         $tids=Tag::getTidsByUid($this->luser->uid);
@@ -72,7 +72,12 @@ class UserController extends Controller
         $uidtype = $request->post('uidtype', null);
         $upwd = $request->post('upwd', null);
         $upwd1 = $request->post('upwd1', null);
+        //得到用户的IP地址
         $ip=Func::getIp();
+        //检测是否符合规范
+        // if($this->check($uname,$uemail,$uidno,$uidtype,$upwd,$upwd1)){
+
+        // }
         if(intval($this->config_basic['status'])!==1||$this->config_basic['register']==='0'){
             $this->errMsg="网站处于维护状态，无法注册！";
         }elseif(!Func::isUname($uname,2,30)){
@@ -96,6 +101,7 @@ class UserController extends Controller
         }elseif(User::where('uinfo->reg_ip',$ip)->count()>=$this->config_basic['iplimit']){
             $this->errMsg="您所在IP已达到用户注册上限！";
         }else{
+            //符合规范，开始注册
             $user=new User();
             $auth=rand(1000,9999);
             $uinfo=[
@@ -166,8 +172,9 @@ class UserController extends Controller
     }
 
     public function login(Request $request) {
+        //得到用户的ip地址
         $ip=Func::getIp();
-        if(in_array($ip,Redis::Lrange('ban',0,-1))){ //错误次数太多会封禁
+        if(in_array($ip,Redis::Lrange('ban',0,-1))){ //错误次数太多ip会封禁
             $this->errMsg="您所在IP已被封禁！";
             $this->getResult();
             return $this->result->toJson();
@@ -176,11 +183,13 @@ class UserController extends Controller
         $uname = $request->post('uname', null);
         $upwd = $request->post('upwd', null);
         $remember = $request->post('remember', null);//是否记住密码
+        //目前这几个变量的值是登录时输入的
         
-        $user = $this->getUser($uidno);//查询用户是否存在
+        $user = $this->getUserBy($uidno);//查询用户是否存在
         if($user === null) {
             $this->errMsg = '该用户不存在！';
         }else{
+            //剩余错误次数
             $left=Redis::exists("left_".$user->uid)?Redis::get("left_".$user->uid):6;
             if(5+$left<=0) {
                 $this->errMsg="您所在IP已被封禁！";//错误次数太多了
@@ -217,29 +226,43 @@ class UserController extends Controller
                 }
             }
         }
+        //登陆成功返回原页面
         if($this->successMsg)
             $this->url=url()->previous();
         $this->getResult();
         return $this->result->toJson();
     }
+
+
+
     //激活
     public function active(Request $request){
         $code = $request->get('code', null);
         $uid = $request->get('uid', null);
-        $uname = mb_strtolower($request->get('uname', null));
+        $uidno = mb_strtolower($request->post('uidno', ""));
+        $uname= $request->get('uname',null);
+        //把输入的数据传进来
         $flag=true;
-        if ($uname!==""){
-            $user = $this->getUser($uname);
+        //身份证号不为空
+        if ($uidno!==""){
+            view()->share('uidno', $uidno);
+            view()->share('uname', $uname);
+            //通过身份证号找到这个用户
+            $user = $this->getUserBy($uidno);
             if($user){
-                view()->share('uname',$user->uidno);
-                if($user->utype==='d') {
+                if($user->uname !== $uname) {
+                    $this->errMsg = "身份证明/邮箱 和 姓名不匹配！";
+                }elseif($user->utype==='d') {
                     $this->warnMsg="该用户已被删除！";
                 }elseif($user->utype!=='a') {
                     $this->infoMsg=$user->uname . "，您已成为正式用户，无需激活！";
                 }else{
                     $this->successMsg="请进入您的邮箱 <strong>".$user->uemail."</strong> 激活账号吧！<br/>注意！链接将于".$this->config_user['activettl']."日后过期，请及时激活！";
+                    //生成一个随机6位数
                     $code=rand(100000,999999);
+                    //到期时间
                     $activeExpire=3600*24*$this->config_user['activettl'];
+                    //发送邮件
                     Func::sendUserMail($user,[
                         'subject'=>$this->config_basic['name']."-用户激活",
                         'text'=>"激活",
@@ -253,6 +276,9 @@ class UserController extends Controller
             }
             $this->getResult();
             return view('user.active')->with('result',$this->result->toJson());
+            //code是和服务器做验证用的，用户不需要知道
+            //只有收到邮件的用户才可以得到这个包含code的连接，其他连接都被认为非法的
+            //激活邮件点进去的操作
         }elseif(Func::isUid($uid)){
             $user = User::where('uid',$uid)->first();
             if($user){
@@ -287,7 +313,7 @@ class UserController extends Controller
 
             //成功消息发出后，返回公告界面
         if($this->successMsg)
-            $this->url="/notice";
+            $this->url="/";
         $this->getResult();
         return view('user.active')->with('result',$this->result->toJson());
     }
@@ -295,22 +321,28 @@ class UserController extends Controller
     public function forget(Request $request){           //忘记密码
         $code= $request->get('code',null);
         $uid= $request->get('uid',null);
+        $uidno = mb_strtolower($request->get('uidno', ""));
         $uname= $request->get('uname',null);
         $upwd= $request->get('upwd',null);
         $upwd1= $request->get('upwd1',null);
         $flag=true;
-        if ($uname!==null){
+        //身份证号不为空
+        if ($uidno!==""){
             view()->share('title', '找回密码');
+            view()->share('uidno', $uidno);
             view()->share('uname', $uname);
-            $user = User::where('uname', $uname)->first();
+            //根据身份证号找到用户
+            $user = $this->getUserBy($uidno);
             if($user) {
-                if ($user->utype === 'b') {
+                if($user->uname !== $uname) {
+                    $this->errMsg = "身份证明/邮箱 和 姓名不匹配！";
+                }elseif($user->utype === 'b') {
                     $this->errMsg = $user->uname . "，您的账号已被封禁，无法激活！";
-                } elseif ($user->utype === 'd') {
-                    $this->warnMsg = "该用户已被删除！";
-                } elseif ($user->utype === 'a') {
-                    $this->warnMsg = "该用户尚未激活！";
-                } else{
+                }elseif($user->utype === 'd') {
+                    $this->errMsg = "该用户已被删除！";
+                }elseif($user->utype === 'a') {
+                    $this->errMsg = "该用户尚未激活！";
+                }else{
                     $this->successMsg = "请进入您的邮箱： <strong>" . $user->uemail . "</strong> 重置密码吧！<br/>注意！重置链接将于" . $this->config_user['forgetttl'] . "日后过期，请及时重置密码！";
                     $code = rand(100000, 999999);
                     $forgetExpire = time() + 3600 * 24 * $this->config_user['forgetttl'];
@@ -324,19 +356,20 @@ class UserController extends Controller
 
                 }
             }else{
-                $this->errMsg = "用户". $uname . "不存在，无法激活！";
+                $this->errMsg = "用户". $uname . "不存在，无法重置！";
             }
             $this->getResult();
             return view('user.forget')->with('result',$this->result->toJson());
-        }elseif($uid!==null){
+        //重置邮件点进去的操作
+        }elseif(Func::isUid($uid)){
             view()->share('title','密码重置');
             $user = User::where('uid',$uid)->first();
             $password=json_decode($user->upwd);
-            if($user){
+            if($user!==null){
                 if(Func::isNum($code,6,6)){
                     if(!Redis::exists("forget_".$uid)){
                         $this->errMsg="抱歉！您的密码重置链接已过期<br/>请重新申请重置密码！";
-                    }else if($code===Redis::get("forget_".$uid)){
+                    }elseif($code===Redis::get("forget_".$uid)){
                         view()->share("fuser",$user);
                         view()->share("code",$code);
                         view()->share('upwd', $upwd);
@@ -380,13 +413,14 @@ class UserController extends Controller
         if(!$flag)
             $this->errMsg="抱歉！您的密码重置链接不正确<br/>请重新打开邮件内的链接！";
         if($this->successMsg)
-            $this->url="/notice";
+            $this->url="/";
         $this->getResult();
         return view('user.forget')->with('result',$this->result->toJson());
     }
 
     //退出
     public function logout(Request $request){
+        //检测用户是否正在登陆中
         if($this->luser){
             setcookie("uid","",0,"/");
             setcookie($this->key,"",0,"/");
@@ -397,6 +431,7 @@ class UserController extends Controller
         }else{
             $this->warnMsg="退出登录失败：没有用户登录中！";
         }
+        //返回到先前的页面
         $this->url=url()->previous();                //返回
         $this->getResult();
         return $this->result->toJson();
@@ -404,19 +439,19 @@ class UserController extends Controller
 
     //修改个人信息
     public function alter(Request $request) {
-        if (!$this->luser){
+        if (!$this->luser){                                     //检测是否登陆
             $this->errMsg="您没有权限修改信息，请重新登录！";
         }else{
-            $upwd = $request->post('upwd', null);
-            $password = json_decode($this->luser->upwd);
+            $upwd = $request->post('upwd', null);              //输入的密码信息，输入正确的密码才能进行修改操作
+            $password = json_decode($this->luser->upwd);       //真正的密码
             if($upwd===null){
                 $this->errMsg="请填写密码以修改信息！";
-            }elseif(md5($password->auth.$upwd)!==$password->pwd){
+            }elseif(md5($password->auth.$upwd)!==$password->pwd){         //密码对不上
                 $this->errMsg="修改信息失败，密码错误！";
             }else{
                 $upwd1 = $request->post('upwd1', null);
                 $upwd2 = $request->post('upwd2', null);
-                $lang = $request->post('lang', null);
+                $lang = $request->post('lang', null);             //语言
                 $private = $request->post('private', null);
                 $sex = $request->post('sex', null);
                 $tel = $request->post('tel', null);
@@ -425,7 +460,7 @@ class UserController extends Controller
                 $homepagessl = $request->post('homepagessl', null);
                 $qq = $request->post('qq', null);
                 $wid = $request->post('wid', null);
-                if($lang!=="cn"&&$lang!=="en"){
+                if($lang!=="cn"&&$lang!=="en"){                   //检错
                     $this->errMsg="语言选择有误！";
                 }elseif($private!=="0"&&$private!=="1"){
                     $this->errMsg="安全信息选择有误！";
@@ -451,17 +486,23 @@ class UserController extends Controller
                             $this->errMsg = '修改失败：新密码与旧密码相同！';
                         }
                     }
+                    //没有出现错误
                     if(!$this->errMsg){
+                        //新密码保存
                         $password->auth=rand(1000,9999);
                         $password->pwd=md5($password->auth.$upwd1);
                         if($upwd1!==null)
                             $this->luser->upwd=json_encode($password,JSON_UNESCAPED_UNICODE);
+
+                        //修改头像和横幅
                         unset($this->luser->avatar);
                         unset($this->luser->banner);
                         if($homepage===null){
-                            $homepage=config("app.host").'/'.$this->luser->uid;
+                            $homepage=config("app.host").'/user/'.$this->luser->uid;
                             $homepagessl=config("app.http");
                         }
+
+                        //更新新修改的数据
                         $this->luser->uinfo=json_encode([
                             'reg_ip'=>$this->luser->uinfo['reg_ip']??Func::getIp(),
                             'lang'=>$lang,
@@ -470,7 +511,7 @@ class UserController extends Controller
                             'tel'=>$tel,
                             'slogan'=>$slogan,
                             'homepage'=>$homepage,
-                            'homepagesl'=>$homepagessl,
+                            'homepagessl'=>$homepagessl,
                             'qq'=>$qq,
                             'wid'=>$wid
                         ],JSON_UNESCAPED_UNICODE);
@@ -492,11 +533,12 @@ class UserController extends Controller
  
     //修改个性签名
     public function alterslogan(Request $request) {
-        if (!$this->luser){
+        if (!$this->luser){                    //看用户是否登录
             $this->errMsg="您没有权限修改信息，请重新登录！";
         }else{
                 $slogan = $request->post('slogan', null);
                 $prePage= $request->post('prePage',null);
+                //存放用户输入的个签
                 if(Func::Length($slogan)>100){
                     $this->errMsg="个性签名格式错误【长度不得大于100】！";
                 }else {
@@ -543,14 +585,14 @@ class UserController extends Controller
 
     //上传横幅
     public function uploadbanner(Request $request){
-        if (!$this->luser){
+        if (!$this->luser){                          //用户没登录
             $response = array(
                 'state'  => 200,
                 'status' => 4,
                 'imgurl' => $this->config_basic['defaultabanner'],
                 'message' => "您没有权限修改横幅，请重新登录！"
             );
-        }else{
+        }else{                         
             $dstwidth=$this->config_basic["bannerwidth"];
             $crop = new CropAvatar($request->post('avatar_src'), $request->post('avatar_data'), $_FILES['avatar_file'], $this->config_basic["userbanner"].$this->luser->uid,$dstwidth,$dstwidth/2);
             $response = array(
@@ -567,7 +609,7 @@ class UserController extends Controller
     //查看用户信息
     public function get($uid){
         $this->url="/";
-        $user=$this->getUser($uid);
+        $user=$this->getUserBy($uid);
         if($user){
             if($user->utype==='d'){
                 $this->errMsg="该用户已被删除，无法查看用户信息！";
@@ -576,10 +618,9 @@ class UserController extends Controller
             }elseif($user->utype==='b'){
                 $this->errMsg="该用户被封禁，无法查看用户信息！";
             }else{
-                // $this->successMsg="欢迎进入用户 ".$user->uname." 的个人主页";
-                $this->successMsg="";
+                $this->successMsg="欢迎进入用户 ".$user->uname." 的个人主页";
                 $this->url=null;
-                Func::getUser($user);
+                $this->getUser($user);
                 $this->setUserPrivate($user);
                 unset($user->upwd);
                 $this->result->data = [
@@ -596,18 +637,22 @@ class UserController extends Controller
 
     //管理员查看用户详细信息
     public function aget($uid){
-        $user=$this->getUser($uid);
         if(!$this->ladmin){
             $this->errMsg="您不是管理员，没有权限查看用户详细信息！";
         }else{
+            $user=$this->getUserBy($uid);
             if($user){
-                $this->successMsg="欢迎进入用户 ".$user->uname." 的个人主页";
-                //Func::getUser就是得到头像和横幅还有信息
-                Func::getUser($user);
-                unset($user->upwd);
-                $this->result->data = [
-                    'user' => $user
-                ];
+                if($user->utype==='d'){
+                    $this->errMsg="该用户已被删除，无法查看用户信息！";
+                }else{
+                    $this->successMsg="欢迎进入用户 ".$user->uname." 的个人主页";
+                    $this->url=null;
+                    $this->getUser($user);//getUser就是得到头像和横幅还有信息
+                    unset($user->upwd);
+                    $this->result->data = [
+                        'user' => $user
+                    ];
+                }
             }else{
                 $this->errMsg="该用户不存在！";
             }
@@ -623,15 +668,17 @@ class UserController extends Controller
         }else{
             $params=$request->all();
             //$orwhere=array();
-            $sql=User::select("uid","utype","uname","uemail","uinfo","utime")->distinct();
+            $sql=User::select("uid","uidno","utype","uname","uemail","uinfo","utime")->distinct();
             $where=[];
             foreach ($params as $key=>$v){
                 if($v!==""&&$v!==null){
-                    if($key==="uname"||$key==="uemail"||$key==="uid"){
+                    if($key==="uname"||$key==="uemail"||$key==="uid"||$key==="uidno"){
                         $where[]=[$key,'like','%'.$v.'%'];
                     }elseif($key==="type"&&in_array($v,$this->config_user['typekey']['all'])){
                         $where[]=['utype','=',$v];
-                    }elseif($key==="nickname"||$key==="sn"||$key==="major"||$key==="tel"||$key==="qq"||$key==="wid"){
+                    }elseif($key==="uidtype"&&isset($this->config_user['idnotype']{$v})){
+                        $where[]=['uidtype','=',$v];
+                    }elseif($key==="tel"||$key==="qq"||$key==="wid"){
                         $where[]=['uinfo->'.$key,'like','%'.$v.'%'];
                     }elseif($key==="sex"){
                         $where[]=['uinfo->'.$key,'=',$v];
@@ -647,19 +694,31 @@ class UserController extends Controller
 
             //根据侧边栏的选择看如何排列
             $orderPara = $params['order']??"";
-            if($orderPara==="uname"||$orderPara==="uemail"){
-                $sql=$sql->orderBy($orderPara)->orderByDesc('uid');
-            }elseif($orderPara==="uid"){
-                $sql=$sql->orderBy('uid');
+            if($orderPara==="uname"){
+                if($params['desc']&&$params['desc']==='1'){
+                    $sql=$sql->orderByRaw("CONVERT(uname USING gbk) desc")->orderBy('uid');
+                }else{
+                    $sql=$sql->orderByRaw("CONVERT(uname USING gbk)")->orderBy('uid');
+                }
+            }elseif($orderPara==="uemail"||$orderPara==="uidno"){
+                if($params['desc']&&$params['desc']==='1'){
+                    $sql=$sql->orderByDesc($orderPara)->orderBy('uid');
+                }else{
+                    $sql=$sql->orderBy($orderPara)->orderBy('uid');
+                }
             }else{
-                $sql=$sql->orderByDesc('uid');
+                if($params['desc']&&$params['desc']==='1'){
+                    $sql=$sql->orderByDesc('uid');
+                }else{
+                    $sql=$sql->orderBy('uid');
+                }
             }
             //echo $sql->toSql();
     
             $users=$sql->paginate($this->config_user['listnum'])->withQueryString();
-            //Func::getUser就是得到头像和横幅还有信息
+            //getUser就是得到头像和横幅还有信息
             foreach($users as $user){
-                Func::getUser($user);
+                $this->getUser($user);
             }
             $this->listMsg($users);
             $this->result->data=[

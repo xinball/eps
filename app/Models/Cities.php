@@ -42,7 +42,7 @@ class Cities extends Model
             $sql=$sql->orwhere('cities.cname','like','%'.$cname.'%');
         if(Func::Length($code)>0)
             $sql=$sql->orwhere('cities.code_full','like','%'.$code.'%');
-        return $sql->get();
+        return $sql->first();
     }
 
     static public function getCitiesBySid($state_id){

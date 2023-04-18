@@ -181,8 +181,6 @@
                             <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-15" type="button">-15°</button>
                             <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-30" type="button">-30°</button>
                             <button class="btn btn-outline-danger btn-like" data-method="rotate" data-option="-45" type="button">-45°</button>
-                        </div>
-                        <div class="btn-group">
                             <button class="btn btn-outline-info" data-method="rotate" data-option="90" type="button" title="Rotate 90 degrees">+90°</button>
                             <button class="btn btn-outline-info" data-method="rotate" data-option="15" type="button">15°</button>
                             <button class="btn btn-outline-info" data-method="rotate" data-option="30" type="button">30°</button>

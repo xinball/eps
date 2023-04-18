@@ -21,6 +21,11 @@ class Func
         $pattern="/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})$/";
         return (bool)preg_match($pattern, $email);
     }
+    //时间语法检查
+    static public function isTime($time){
+        $pattern="/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/";
+        return (bool)preg_match($pattern, $time);
+    }
 
     //获取长度
     static public function Length($text){
@@ -48,19 +53,70 @@ class Func
         return $uidtypeval>=0&&$uidtypeval<=5;
     }
 
-    //身份证号语法检查
+    //身份证号格式检查
     static public function isUidno($uidno,$uidtype=0){
-        $pattern=[
-            "/^[1-9]\d{5}(18|19|([23]\d))\d{2}(0[1-9]|10|11|12)([0-2][1-9]|10|20|30|31)\d{3}[0-9Xx]$/",
-            "/^$/",
-            "/^$/",
-            "/^$/",
-            "/^$/",
-            "/^$/",
-        ];
-        return (bool)preg_match($pattern[$uidtype], $uidno);
+        switch($uidtype){
+            case 0:return Func::checkID($uidno);
+            case 1:return Func::checkID($uidno,"hmt");
+            case 5:return Func::checkID($uidno);
+            case 2:return Func::checkHM($uidno);
+            case 3:return Func::checkTW($uidno);
+            case 4:return Func::checkPassport($uidno);
+        }
     }
-
+    static public function checkID($id,$type=null) {
+        $id = strtoupper ($id);
+        if($type==="hmt"&&substr($id,0,2)!=="81"&&substr($id,0,2)!=="82"&&substr($id,0,2)!=="83"){
+            return false;
+        }
+        $regx = "/(^\d{15}$)|(^\d{17}([0-9]|X)$)/";
+        $arr_split = array();
+        if(!preg_match ($regx, $id)) {
+            return false;
+        }
+        //检查15位
+        if(15==strlen ($id)) {
+            $regx = "/^(\d{6})+(\d{2})+(\d{2})+(\d{2})+(\d{3})$/";
+            @preg_match ($regx, $id, $arr_split);
+            //检查生日日期是否正确
+            $dtm_birth = "19".$arr_split[2]. '/'. $arr_split[3]. '/'.$arr_split[4];
+            if(!strtotime ($dtm_birth)) {
+                return false;
+            }else{
+                return true;
+            }
+        }else{
+            //检查18位
+            $regx = "/^(\d{6})+(\d{4})+(\d{2})+(\d{2})+(\d{3})([0-9]|X)$/"; 
+            @preg_match ($regx, $id, $arr_split);
+            $dtm_birth = $arr_split[2]. '/'. $arr_split[3]. '/'.$arr_split[4];
+            //检查生日日期是否正确
+            if(!strtotime ($dtm_birth)) {
+                return false;
+            }else{
+                //检验18位身份证的校验码是否正确。
+                //计算校验码
+                $sigma = 0;
+                for ($i = 17;$i >= 0;$i --) {
+                    $sigma += (pow (2,$i % 10) % 11) * intval ($id{17 - $i},11);
+                }
+                if($sigma % 11 != 1) {
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        }
+    }
+    static public function checkHM($uidno){
+        return true;
+    }
+    static public function checkTW($uidno){
+        return true;
+    }
+    static public function checkPassport($uidno){
+        return true;
+    }
     //身份证信息与姓名验证接口，可接入身份系统
     static public function isUidnoUname($uidno,$uname){
         return true;
@@ -79,8 +135,13 @@ class Func
     }
 
     //是否是数字
-    static public function isNum($num,$min=2,$max=10){
-        $pattern="/^[0-9]{".$min.",".$max."}$/";
+    static public function isNum($num,$min=1,$max=10){
+        $pattern="/^-?[0-9]{".$min.",".$max."}$/";
+        return (bool)preg_match($pattern, $num);
+    }
+    //是否是浮点数
+    static public function isDec($num,$min=1,$max=10){
+        $pattern="/^-?[0-9]{".$min.",".$max."}(\.[0-9]{1,})$/";
         return (bool)preg_match($pattern, $num);
     }
     static public function isNick($nick,$min=2,$max=20){
@@ -92,51 +153,6 @@ class Func
     static public function isTel($nick){
         $pattern="/^[ 0-9-]{4,20}$/u";
         return (bool)preg_match($pattern, $nick);
-    }
-
-    //补充获取用户信息，头像和背景，并对json格式字符串解码
-    static public function getUser(User $user){
-        $user->avatar=Func::getAvatar($user->uid);
-        $user->banner=Func::getBanner($user->uid);
-        $user->uinfo=json_decode($user->uinfo,true);
-    }
-
-    //登录页面，输入完身份证或者邮箱后，点击别处会刷新，如果该用户有自己头像就显示自己头像，没有就显示默认头像
-    static public function getAvatar($uid=null){
-        $basicConfig=Redis::hGetAll("basic");
-        $default=($basicConfig['defaultavatar'] ?? "/img/favicon.png");
-        if($uid){
-            $href=($basicConfig['useravatar'] ?? "/img/avatar/").$uid.".png";
-            if(is_file(public_path($href))){
-                return $href."?".filectime(public_path($href));
-            }
-        }
-        return $default."?".filectime(public_path($default));
-    }
-
-    //得到站点的头像，没有就用默认头像
-    static public function getSAvatar($sid=null){
-        if($sid){
-            $href=($basicConfig['stationavatar'] ?? "/img/station/").$sid.".png";
-            if(is_file(public_path($href))){
-                return url('/').$href."?".filectime(public_path($href));
-            }
-        }
-        return url('/bootstrap/icon/geo.svg');
-    }
-
-
-    //有则用自己，没有用默认
-    static public function getBanner($uid=null){
-        $basicConfig=Redis::hGetAll("basic");
-        $default=($basicConfig['defaultbanner'] ?? "/img/banner/redchina.png");
-        if($uid){
-            $href=($basicConfig['userbanner'] ?? "/img/banner/").$uid.".png";
-            if(is_file(public_path($href))){
-                return $href."?".filectime(public_path($href));
-            }
-        }
-        return $default."?".filectime(public_path($default));
     }
 
     //得到登录地址的IP
@@ -179,7 +195,7 @@ class Func
         if(count($dtime)===0){
             return false;
         }
-        $val=($val+28800)%86400;
+        $val-=strtotime(date("Y-m-d"),$v);
         foreach($dtime as $item){
             if($item['start']<=$val&&$item['end']>=$val){
                 return true;

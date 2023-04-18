@@ -35,6 +35,8 @@ return [
     'asi'=>config('app.url')."/service/admin/station/insert/",
     'asd'=>config('app.url')."/service/admin/station/del/",
     'asa'=>config('app.url')."/service/admin/station/alter/",
+    'asu'=>config('app.url')."/service/admin/station/uploadavatar/",
+    'ass'=>config('app.url')."/service/admin/station/setadmin/",
     'asr'=>config('app.url')."/service/admin/station/recover/",
 
     'alg'=>config('app.url')."/service/admin/location/get/",

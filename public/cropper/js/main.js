@@ -27,8 +27,8 @@
     this.$avatarSrc = this.$avatarForm.find('.avatar-src');
     this.$avatarData = this.$avatarForm.find('.avatar-data');
     this.$avatarInput = this.$avatarForm.find('.avatar-input');
-    this.$avatarSave = this.$avatarForm.find('.avatar-save');
-    this.$avatarBtns = this.$avatarForm.find('.avatar-btns');
+    this.$avatarSave = this.$avatarModal.find('.avatar-save');
+    this.$avatarBtns = this.$avatarModal.find('.avatar-btns');
 
     this.$avatarWrapper = this.$avatarModal.find('.avatar-wrapper');
     this.$avatarPreview = this.$avatarModal.find('.avatar-preview');
@@ -62,6 +62,7 @@
       this.$avatarView.on('click', $.proxy(this.click, this));
       this.$avatarInput.on('change', $.proxy(this.change, this));
       this.$avatarForm.on('submit', $.proxy(this.submit, this));
+      this.$avatarBtns.on('change', $.proxy(this.rotate, this));
       this.$avatarBtns.on('click', $.proxy(this.rotate, this));
     },
 
@@ -176,7 +177,8 @@
         data = $(e.target).data();
 
         if (data.method) {
-          this.$img.cropper(data.method, data.option);
+          // this.$img.cropper(data.method, data.option);
+          this.$img.cropper(data.method, $(e.target).val());
         }
       }
     },
@@ -332,7 +334,7 @@
   $(function () {
     new CropAvatar($('#crop-avatar'),"avatar-view","avatar-modal",1);
     new CropAvatar($('#crop-banner'),"banner-view","banner-modal",2);
-    new CropAvatar($('#crop-contest'),"contest-view","contest-modal",1);
+    new CropAvatar($('#crop-station'),"station-view","station-modal",1);
   });
 
 });

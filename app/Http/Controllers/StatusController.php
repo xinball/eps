@@ -56,7 +56,7 @@ class StatusController extends Controller
                 }elseif($key==="stype"&&in_array($v,["a","u"])){
                     $where[]=['stype','=',$v];
                 }elseif($key==="suid"){
-                    $user=$this->getUser($v);
+                    $user=$this->getUserBy($v);
                     if($user!==null)
                         $where[]=['suid','=',$user->uid];
                 }elseif($key==="sstart"&&strtotime($v)){
@@ -128,7 +128,7 @@ class StatusController extends Controller
                 }elseif($key==="stype"&&in_array($v,["a","u"])){
                     $where[]=['stype','=',$v];
                 }elseif($key==="suid"){
-                    $user=$this->getUser($v);
+                    $user=$this->getUserBy($v);
                     if($user!==null)
                         $where[]=['suid','=',$user->uid];
                 }elseif($key==="sstart"&&strtotime($v)){

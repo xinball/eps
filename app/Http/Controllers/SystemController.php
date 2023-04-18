@@ -22,33 +22,37 @@ class SystemController extends Controller
         $fcname=$request->get("fcname",null);
         $fname=$request->get("fname",null);
         if($type==='z'){
-            return Continents::getInfo($id,$name,$cname);//lname cname
+            $data = Continents::getInfo($id,$name,$cname);//lname cname
         }elseif($type==='g'){
-            return Countries::getInfo($id,$name,$cname,$fname,$fcname,$code);//name cname lname fcname code
+            $data = Countries::getInfo($id,$name,$cname,$fname,$fcname,$code);//name cname lname fcname code
         }elseif($type==='s'){
-            return States::getInfo($id,$name,$cname,$code);//lname cname code
+            $data = States::getInfo($id,$name,$cname,$code);//lname cname code
         }elseif($type==='c'){
-            return Cities::getInfo($id,$name,$cname,$code);//lname cname code_full
+            $data = Cities::getInfo($id,$name,$cname,$code);//lname cname code_full
         }elseif($type==='r'){
-            return Regions::getInfo($id,$name,$cname,$code);//lname cname code_full
+            $data = Regions::getInfo($id,$name,$cname,$code);//lname cname code_full
+        }else{
+            $data = "{}";
         }
-        return "";
+        return json_encode($data, JSON_UNESCAPED_UNICODE);
     }
     public function getaddrlist(Request $request){
         $type=$request->get("type",null);
         $id=$request->get("id");
         if($type==='z'){
-            return Continents::getlist($id);
+            $data = Continents::getlist($id);
         }elseif($type==='g'){
-            return Countries::getCountriesByZid($id);
+            $data = Countries::getCountriesByZid($id);
         }elseif($type==='s'){
-            return States::getStatesByGid($id);
+            $data = States::getStatesByGid($id);
         }elseif($type==='c'){
-            return Cities::getCitiesBySid($id);
+            $data = Cities::getCitiesBySid($id);
         }elseif($type==='r'){
-            return Regions::getRegionsByCid($id);
+            $data = Regions::getRegionsByCid($id);
+        }else{
+            $data = "[]";
         }
-        return "";
+        return json_encode($data, JSON_UNESCAPED_UNICODE);
     }
     public function ping(Request $request){
         return count(Redis::keys("token_*"));

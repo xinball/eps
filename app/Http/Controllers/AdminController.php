@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\Problem;
 use App\Models\Contest;
 use App\Models\Tag;
@@ -16,57 +17,47 @@ use Illuminate\Support\Facades\Redis;
 
 class AdminController extends Controller
 {
-
+    private function checkauth(){
+        if($this->ladmin!==null&&($this->ladmin->utype==='s'||$this->ladmin->utype==='x')){
+            return true;
+        }
+        return false;
+    }
     public function settingview(Request $request){
-        if ($auth=$this->authAdminView($request)){
-            return $auth;
+        if (!$this->checkauth()){
+            return $this->defaultAdminView($request);
         }
         return view('admin.setting')->with('seactive',true);
     }
+    public function noticeview(Request $request){
+        if (!$this->checkauth()){
+            return $this->defaultAdminView($request);
+        }
+        return view('admin.notice')->with('nactive',true);
+    }
+    public function userview(Request $request){
+        if (!$this->checkauth()){
+            return $this->defaultAdminView($request);
+        }
+        return view('admin.user')->with('uactive',true)->with('ban',Redis::lrange('ban',0,-1));
+    }
     public function stationview(Request $request){
-        if ($auth=$this->authAdminView($request)){
-            return $auth;
+        if (!$this->ladmin){
+            return $this->defaultAdminView($request);
         }
         return view('admin.station')->with('sactive',true);
     }
-    public function locationview(Request $request){
-        if ($auth=$this->authAdminView($request)){
-            return $auth;
-        }
-        return view('admin.location')->with('lactive',true);
-    }
     public function appointview(Request $request){
-        if ($auth=$this->authAdminView($request)){
-            return $auth;
+        if (!$this->ladmin){
+            return $this->defaultAdminView($request);
         }
         return view('admin.appoint')->with('aactive',true);
     }
     public function reportview(Request $request){
-        if ($auth=$this->authAdminView($request)){
-            return $auth;
+        if (!$this->ladmin){
+            return $this->defaultAdminView($request);
         }
         return view('admin.report')->with('ractive',true);
-    }
-    public function noticeview(Request $request){
-        if ($auth=$this->authAdminView($request)){           //检查管理员是否登录
-            return $auth;
-        }
-        return view('admin.notice')->with('nactive',true);
-    }
-
-
-    public function tagview(Request $request){
-        if ($auth=$this->authAdminView($request)){
-            return $auth;
-        }
-        $this->result->tags=Tag::all();
-        return view('admin.tag')->with('tactive',true)->with('result',$this->result->toJson());
-    }
-    public function userview(Request $request){
-        if ($auth=$this->authAdminView($request)){
-            return $auth;
-        }
-        return view('admin.user')->with('uactive',true)->with('ban',Redis::lrange('ban',0,-1));
     }
 
 
@@ -78,12 +69,14 @@ class AdminController extends Controller
             $this->getResult();
             return $this->result->toJson();
         }
+
+        //存放输入的数据
         $uidno = mb_strtolower($request->post('uidno', null));
         $uname = $request->post('uname', null);
         $upwd = $request->post('upwd', '');
         $remember = $request->post('remember', '');
         
-        $admin = $this->getUser($uidno);
+        $admin = $this->getUserBy($uidno);
         if($admin == null) {
             $this->errMsg = '该管理员不存在！';
         }else{
@@ -101,7 +94,9 @@ class AdminController extends Controller
                     $this->errMsg="用户尚未激活，请激活后登录！";
                 }elseif($admin->utype=='d') {
                     $this->errMsg="用户已被删除！";
-                }elseif($admin->utype!='s'&&$admin->utype!='x') {
+                }elseif($admin->utype=='r'&&!DB::table("admin_station")->where("uid",$admin->uid)->exists()) {
+                    $this->errMsg="没有权限：无可管理站点！";
+                }elseif($admin->utype!='s'&&$admin->utype!='x'&&$admin->utype!='r') {
                     $this->errMsg="没有权限：用户不是管理员！";
                 }else{
                     //password存真正的密码
@@ -112,6 +107,7 @@ class AdminController extends Controller
                         $this->errMsg="密码错误，您还有".($left-1)."次机会！";
                     }else{
                         $token=md5($admin->uid.rand());
+                        //如果选择保存expire（到期）时间就会长
                         if($remember)
                             $expire=time()+3600*24*30;
                         else{
@@ -134,9 +130,8 @@ class AdminController extends Controller
         $this->getResult();
         return $this->result->toJson();
     }
-
-
     public function logout(Request $request){
+        //看看管理员是否处于登录状态
         if($this->ladmin){
             setcookie("auid","",0,"/");
             setcookie($this->akey,"",0,"/");
@@ -147,13 +142,13 @@ class AdminController extends Controller
         }else{
             $this->warnMsg="退出登录失败：没有管理员登录中！";
         }
+        //返回初始界面
         $this->url=url()->previous();
         $this->getResult();
         return $this->result->toJson();
     }
-
     public function alter(Request $request,$config) {
-        if (!$this->ladmin){
+        if (!checkauth()){
             $this->errMsg="您没有权限修改网站配置信息，请重新登录！";
         }else{
             if($config==='ban'){

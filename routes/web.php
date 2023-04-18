@@ -21,12 +21,12 @@ use App\Entity\Problem;
 });*/
 
 //需要显示
-Route::get('/','NoticeController@listview');
-Route::get('/notice','NoticeController@listview');
-Route::get('/notice/{nid}','NoticeController@indexview');
+Route::get('/','NoticeController@listview');    //
+Route::get('/notice','NoticeController@listview');     //
+Route::get('/notice/{nid}','NoticeController@indexview');    //
 
-Route::get('/station','StationController@listview');
-Route::get('/station/{sid}','StationController@indexview');
+Route::get('/station','StationController@listview');    //
+Route::get('/station/{sid}','StationController@indexview');    //
 
 Route::get('/contest','ContestController@listview');
 Route::get('/contest/{cid}','ContestController@indexview');
@@ -34,77 +34,75 @@ Route::get('/contest/{cid}','ContestController@indexview');
 Route::get('/status','StatusController@listview');
 Route::get('/status/{sid}','StatusController@indexview');
 
-Route::get('/active','UserController@activeview');    //激活
-Route::get('/forget','UserController@forgetview');    //忘记密码
-Route::get('/user','UserController@settingview');
-Route::get('/user/setting','UserController@settingview');
+Route::get('/user','UserController@settingview');          //
+Route::get('/user/active','UserController@activeview');    //激活
+Route::get('/user/forget','UserController@forgetview');    //忘记密码
+Route::get('/user/setting','UserController@settingview');   //
 Route::get('/user/problem','UserController@problemview');
 Route::get('/user/icontest','UserController@icontestview');
 Route::get('/user/jcontest','UserController@jcontestview');
 Route::get('/user/status','UserController@statusview');
 Route::get('/user/tag','UserController@tagview');
-Route::get('/user/{uid}','UserController@indexview');
+Route::get('/user/{uid}','UserController@indexview');          //
 Route::post('/user/upload','UserController@upload');             //上传
 
 Route::get('/admin','AdminController@settingview');
 Route::get('/admin/setting','AdminController@settingview');
-Route::get('/admin/notice','AdminController@noticeview');
+Route::get('/admin/notice','AdminController@noticeview');      //
 Route::get('/admin/tag','AdminController@tagview');
-Route::get('/admin/station','AdminController@stationview');
+Route::get('/admin/station','AdminController@stationview');    //
 Route::get('/admin/location','AdminController@locationview');
 Route::get('/admin/appoint','AdminController@appointview');
 Route::get('/admin/report','AdminController@reportview');
-Route::get('/admin/user','AdminController@userview');
+Route::get('/admin/user','AdminController@userview');       //
 
 
 //服务，不显示
 Route::group(['prefix'=>'service'],function (){
     Route::group(['prefix'=>'system'],function (){
         Route::get('/getaddr','SystemController@getaddr');
-        Route::get('/getaddrlist','SystemController@getaddrlist');
+        Route::get('/getaddrlist','SystemController@getaddrlist');   //
         Route::get('/ping','SystemController@ping');
     });
     Route::group(['prefix'=>'user'],function (){
-        Route::post('/login','UserController@login');
-        Route::post('/register','UserController@register');
-        Route::get('/active','UserController@active');
-        Route::get('/forget','UserController@forget');
-        Route::get('/logout','UserController@logout');
+        Route::post('/login','UserController@login');                //
+        Route::post('/register','UserController@register');        //
+        Route::get('/active','UserController@active');            //
+        Route::get('/forget','UserController@forget');           //
+        Route::get('/logout','UserController@logout');               //
 
-        Route::get('/get/{uid}','UserController@get');
-        Route::post('/alter','UserController@alter');
-        Route::post('/alterslogan','UserController@alterslogan');
-        Route::post('/uploadavatar','UserController@uploadavatar');
-        Route::post('/uploadbanner','UserController@uploadbanner');
+        Route::get('/get/{uid}','UserController@get');                //
+        Route::post('/alter','UserController@alter');                //
+        Route::post('/alterslogan','UserController@alterslogan');   //
+        Route::post('/uploadavatar','UserController@uploadavatar');   //
+        Route::post('/uploadbanner','UserController@uploadbanner');    //
 
     });
     Route::group(['prefix'=>'admin'],function (){
-        Route::post('/login','AdminController@login');
-        Route::get('/logout','AdminController@logout');
+        Route::post('/login','AdminController@login');          //
+        Route::get('/logout','AdminController@logout');           //
         Route::post('/alter/{config}','AdminController@alter');
-        Route::get('/getuser',function (){
-            return User::paginate(4)->withQueryString();
-        });
 
         Route::group(['prefix'=>'user'],function (){
             Route::get('/get/{uid}','UserController@aget');
             Route::get('/getlist','UserController@agetlist');
         });
         Route::group(['prefix'=>'notice'],function (){
-            Route::get('/get/{nid}','NoticeController@aget');
+            Route::get('/get/{nid}','NoticeController@aget');        //
             Route::get('/getlist','NoticeController@agetlist');
-            Route::get('/del/{nid}','NoticeController@del');
-            Route::post('/insert','NoticeController@insert');
-            Route::post('/alter/{nid}','NoticeController@alter');
-            Route::get('/recover/{nid}','NoticeController@recover');
+            Route::get('/del/{nid}','NoticeController@del');   //
+            Route::post('/insert','NoticeController@insert');    //
+            Route::post('/alter/{nid}','NoticeController@alter');      //
+            Route::get('/recover/{nid}','NoticeController@recover');    //
         });
         Route::group(['prefix'=>'station'],function (){
             Route::get('/get/{sid}','StationController@aget');
-            Route::get('/getlist','StationController@agetlist');
+            Route::get('/getlist','StationController@agetlist');       //
             Route::post('/insert','StationController@insert');
-            Route::get('/del/{sid}','StationController@del');
-            Route::get('/recover/{sid}','StationController@recover');
+            Route::get('/del/{sid}','StationController@del');            //
+            Route::get('/recover/{sid}','StationController@recover');    //
             Route::post('/alter/{sid}','StationController@alter');
+            Route::post('/uploadavatar/{sid}','StationController@uploadavatar');    
         });
         Route::group(['prefix'=>'location'],function (){
             Route::get('/get/{lid}','LocationController@aget');
@@ -164,11 +162,5 @@ Route::group(['prefix'=>'service'],function (){
     Route::group(['prefix'=>'activity'],function (){
         Route::get('/get/{uid}/{aid}','ActivityController@get');
         Route::get('/getlist/{uid}','ActivityController@getlist');
-    });
-    Route::group(['prefix'=>'tag'],function (){
-        Route::get('/get/{tid}','TagController@get');
-        Route::get('/getlist','TagController@getlist');
-        Route::get('/like/{tid}','TagController@like');
-        Route::get('/dellike/{tid}','TagController@dellike');
     });
 });

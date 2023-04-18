@@ -17,7 +17,7 @@ class Result{
         setcookie("result",json_encode([
             'status'=>$this->status,
             'message'=>$this->message
-        ],JSON_UNESCAPED_UNICODE),time()+2,'/');
+        ],JSON_UNESCAPED_UNICODE),time()+3,'/');
         return json_encode($this, JSON_UNESCAPED_UNICODE);
     }
 }

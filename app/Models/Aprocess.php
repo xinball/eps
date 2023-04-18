@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Aprocess whereApid($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Aprocess whereApinfo($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Aprocess whereUid($value)
+ * @property string $aptime 预约处理时间
+ * @method static \Illuminate\Database\Eloquent\Builder|Aprocess whereAptime($value)
  */
 class Aprocess extends Model
 {

@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use DB;
 /**
  * App\Models\Station
  *
@@ -29,6 +29,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Station whereStime($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Station whereSstate($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Station whereSname($value)
+ * @property int $state_id 省编号
+ * @method static \Illuminate\Database\Eloquent\Builder|Station whereStateId($value)
  */
 class Station extends Model
 {
@@ -36,8 +38,24 @@ class Station extends Model
     protected $primaryKey = "sid";
     public $timestamps=false;
     //
-    static public function getStationlist($where,$params){
-        $sql = Station::distinct()->select("sid","sname","sstate","city_id","region_id","slng","slat","sinfo","stime")
+    static public function getSAdminBy($station){
+        return DB::table("admin_station")->distinct()->select("user.uid","uemail","uname","pri")->where("sid",$station->sid)->orderByDesc("pri")->join("user","user.uid","admin_station.uid")->get();
+    }
+    static public function getAAdminBy($station){
+        return DB::table("admin_area")->distinct()->selectRaw("user.uid,uname,uemail,JSON_ARRAYAGG(type) as types")
+        ->where(function ($query) use ($station){
+            $query->orWhere(function ($query) use ($station){
+                $query->where("type","r")->where("admin_area.region_id",$station->region_id);
+            })->orWhere(function ($query) use ($station){
+                $query->where("type","c")->where("admin_area.city_id",$station->city_id);
+            })->orWhere(function ($query) use ($station){
+                $query->where("type","s")->where("admin_area.state_id",$station->state_id);
+            });
+        })->groupBy("uid","uname","uemail")
+        ->join("user","user.uid","admin_area.uid")->get();
+    }
+    static public function getStationlist($where,$params,$orwhere=null){
+        $sql = Station::distinct()->select("sid","sname","sstate","sinfo")
         
         ->selectRaw('round(ST_Distance_Sphere(point(?,?),point(slng,slat))) as len',[$params['lng'],$params['lat']])
         
@@ -46,6 +64,14 @@ class Station extends Model
         ->selectRaw('(select count(appoint.aid) from appoint where appoint.sid=station.sid and appoint.atype = ? and appoint.astate = "s" and TO_DAYS(appoint.atime) = TO_DAYS(?)  ) as anum',[$params['service'],$params['atime']])
 
         ->where($where);
+
+        if($orwhere!==null&&count($orwhere)>0){
+            $sql = $sql->where(function ($query) use ($orwhere){
+                foreach($orwhere as $index=>$item){
+                    $query->orWhereIn($index,$item);
+                }
+            });
+        }
         $orderPara = $params['order']??"";
         if($orderPara==="len"||$orderPara==="num"){
             $sql=$sql->orderByDesc($orderPara)->orderByDesc('station.sid');

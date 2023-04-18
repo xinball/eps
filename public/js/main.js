@@ -6,6 +6,109 @@
 
 // const { forEach } = require("lodash");
 
+        //javascript: window.open( `https://video-direct-link.vercel.app/bili.mp4?aid=${aid}&bvid=${bvid}&cid=${cid}`)
+        let editorconfig={
+            placeholder:"在此处输入或粘贴内容",
+            link:{
+                addTargetToExternalLinks: true,
+                decorators: [
+                    {
+                        mode: 'manual',
+                        label: '允许下载',
+                        attributes:{
+                            download: 'download'
+                        }
+                    }
+                ]
+            },
+            image: {
+                toolbar: [
+                    'imageTextAlternative',
+                    'imageStyle:inline',
+                    'imageStyle:block',
+                    'imageStyle:side',
+                    'linkImage'
+                ]
+            },
+            table: {
+                contentToolbar: [
+                    'tableColumn',
+                    'tableRow',
+                    'mergeTableCells',
+                    'tableCellProperties',
+                    'tableProperties'
+                ]
+            },
+            mediaEmbed:{
+                extraProviders:[
+                    {
+                        name:'allow-all',
+                        url:/^.+mp4/,
+                        html:match=>
+                            `<div>
+                                <iframe src=${match} frameborder="10" allowfullscreen="true" style="position:absolute;width:99%;height:400px;"></iframe>    
+                            </div>`
+                    }
+                ]
+            }
+        };
+
+    function setproblemsta(sta,stadata,title="") {
+    sta.setOption({
+        title:{
+        left:'center',
+            text:title,
+        },
+        tooltip: {
+        trigger: 'item',
+        formatter: '{b} : {c}({d}%)'
+        },
+        legend: {
+        bottom: 0,
+        left: 'center',
+        data: ['AC','CE','WA','RE','TL','ML','SE'],
+        },
+        series: [{
+        type: 'pie',
+        radius: ['30%','70%'],
+        center: ['50%','40%'],
+        selectedMode: 'single',
+        itemStyle: {
+        borderRadius: 4,
+        borderColor: '#fff',
+        borderWidth: 1
+        },
+        label: {
+        show: false,
+        position: 'center'
+        },
+        emphasis: {
+        itemStyle:{
+        shadowBlur:5,
+        shadowOffsetX:0,
+        shadowColor:'rgb(0,0,0,0.5)'
+        },
+        label: {
+        show: true,
+        fontSize: '40',
+        fontWeight: 'bold'
+        }
+        },
+        color:[
+        "#64c06c",
+        "grey",
+        "red",
+        "sandybrown",
+        "orange",
+        "deepskyblue",
+        "black",
+        ],
+        data: stadata
+        }
+        ]
+    });
+    }
+const DAYTYPE=["周日","周一","周二","周三","周四","周五","周六"];
 $(function (){
     $(".alert-dismissible").on("click",function () {
         $(this).remove();
@@ -13,7 +116,9 @@ $(function (){
     $(document.body).on("click",".alert-dismissible",function () {
         $(this).remove();
     });
-
+    document.body.onselectstart=document.body.ondrag=function(){ 
+        return false; 
+    }
 
     // Fetch all the forms we want to apply custom Bootstrap validation styles to
     var forms = document.querySelectorAll('.needs-validation')
@@ -31,7 +136,17 @@ $(function (){
             }, false)
         })
 });
-
+//密码小眼睛
+function changePwdtype(obj,id){
+    if($("#"+id).attr("type")==="password"){
+        $("#"+id).attr("type","text");
+        $(obj).children()[0].className="bi bi-eye-fill";
+    }else{
+        $("#"+id).attr("type","password");
+        $(obj).children()[0].className="bi bi-eye-slash";
+    }
+    return false;
+}
 //返回时间
 function getSubTime(start,end){
     let second=Math.floor((end-start)/1000);
@@ -145,7 +260,6 @@ function initmodal(id) {
 function getDate(datestr){
     return new Date(datestr.replace(/-/g,"/"));
 }
-
 //转化为日期
 function toDatetime(datestr){
     const date=new Date(datestr);
@@ -153,6 +267,13 @@ function toDatetime(datestr){
     const m=date.getMonth()+1;
     const d=date.getDate();
     return y+"-"+(m<10?"0"+m:m)+"-"+(d<10?"0"+d:d)+"T"+(date.toTimeString()).substring(0,8);
+}
+function toDate(datestr){
+    const date=new Date(datestr);
+    const y=date.getFullYear();
+    const m=date.getMonth()+1;
+    const d=date.getDate();
+    return y+"-"+(m<10?"0"+m:m)+"-"+(d<10?"0"+d:d);
 }
 function url2json(url){
     let params={};
@@ -209,7 +330,40 @@ function setpaginator(app){
         app.initStatus();
     }
 }
-
+function initaddress(app,sla,params){
+    const city_id=params.city_id;
+    const region_id=params.region_id;
+    getData(sla+"?type=s&id=44",function(json){
+        app.state_ids=json;
+    });
+    app.getRegions=function(region_id=""){
+        getData(sla+"?type=r&id="+params.city_id,function(json){
+            app.region_ids=json;
+            if(region_id!==""){
+                params.region_id=region_id;
+            }else{
+                params.region_id="";
+            }
+        });
+    };
+    app.getCities=function(city_id="",region_id=""){
+        getData(sla+"?type=c&id="+params.state_id,function(json){
+            app.city_ids=json;
+            if(city_id===""){
+                params.city_id="";
+                app.region_ids=[];
+            }else{
+                params.city_id=city_id;
+                if(region_id!==""){
+                    app.getRegions(region_id);
+                }else{
+                    params.region_id="";
+                }
+            }
+        });
+    };
+    app.getCities(city_id,region_id);
+}
 
 //初始化标页码
 function initpaginator(app){
@@ -240,6 +394,14 @@ function initpaginator(app){
     app.setpage=function (page) {
         app.paramspre.page=page;
         app.getData(app.paramspre);
+    };
+    app.orderby=function (by) {
+        app.params.order=by;
+        app.getData();
+    };
+    app.setdesc=function () {
+        app.params.desc=(app.params.desc==='0'?'1':'0');
+        app.getData();
     };
     app.settype=function (type) {
         app.params.type=type;
@@ -288,6 +450,21 @@ function getData(url,f=null,echo=false,data=null,jump=true,load=true,time=5000){
                 f(json);
             if(load)
                 stopload();
+        }).fail(function(xhr, status, info){
+            let result={
+                status: 4,
+                message: ""
+            }
+            if(xhr.status == 419){
+                result.message="页面过期，请刷新后重试！";
+                echoMsg(echo,result,time,jump);
+            }else if(xhr.status == 404){
+                result.message="请求链接失效！";
+                echoMsg(echo,result,time,jump);
+            }else{
+                result.message="服务器错误，请稍后重试！";
+                echoMsg(echo,result,time,jump);
+            }
         });
     }else{
         $.post(url,data,function(result){
@@ -299,6 +476,21 @@ function getData(url,f=null,echo=false,data=null,jump=true,load=true,time=5000){
                 f(json);
             if(load)
                 stopload();
+        }).error(function(xhr, status, info){
+            let result={
+                status: 4,
+                message: ""
+            }
+            if(xhr.status == 419){
+                result.message="页面过期，请刷新后重试！";
+                echoMsg(echo,result,time,jump);
+            }else if(xhr.status == 404){
+                result.message="请求链接失效！";
+                echoMsg(echo,result,time,jump);
+            }else{
+                result.message="服务器错误，请稍后重试！";
+                echoMsg(echo,result,time,jump);
+            }
         });
     }
     if(load)
