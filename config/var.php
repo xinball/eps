@@ -10,6 +10,7 @@ return [
     'uub'=>config('app.url')."/service/user/uploadbanner",
 
     'ua'=> config('app.url')."/service/user/active",
+    'ui'=> config('app.url')."/service/user/ipverify",
     'uf'=> config('app.url')."/service/user/forget",
     'ur'=>config('app.url')."/service/user/register",
     'ul'=>config('app.url')."/service/user/login",

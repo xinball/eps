@@ -67,6 +67,7 @@ Route::group(['prefix'=>'service'],function (){
     Route::group(['prefix'=>'user'],function (){
         Route::post('/login','UserController@login');                //
         Route::post('/register','UserController@register');        //
+        Route::get('/ipverify','UserController@ipverify');            //
         Route::get('/active','UserController@active');            //
         Route::get('/forget','UserController@forget');           //
         Route::get('/logout','UserController@logout');               //

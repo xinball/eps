@@ -106,19 +106,33 @@ class AdminController extends Controller
                         Redis::setex("left_".$admin->uid,3600,$left-1);
                         $this->errMsg="密码错误，您还有".($left-1)."次机会！";
                     }else{
-                        $token=md5($admin->uid.rand());
-                        //如果选择保存expire（到期）时间就会长
-                        if($remember)
-                            $expire=time()+3600*24*30;
-                        else{
-                            $expire=time()+$this->config_user['userloginttl'];
+                        if(!$this->checkip($admin,$ip)){
+                            $ipttl=$this->config_user['ipttl'];
+                            $this->warnMsg="您所在IP尚未登录过本站，请进入您的<strong>邮箱 ".$admin->uemail." 点击链接</strong>绑定本机IP进行登录<br/>注意！链接将于".$ipttl."日后过期，请及时激活！";
+                            $code=rand(100000,999999).$ip;
+                            $ipExpire=3600*24*$ipttl;
+                            Redis::setex("ip_".$admin->uid,$ipExpire,$code);
+                            Func::sendUserMail($admin,[
+                                'subject'=>$this->config_basic['name']."-用户IP验证",
+                                'text'=>"IP验证",
+                                'link'=>config('var.ui')."?uid=$admin->uid&code=$code",
+                                'expire'=>date("Y-m-d H:i:s",$ipExpire+time())
+                            ]);
+                        }else{
+                            $token=md5($admin->uid.rand());
+                            //如果选择保存expire（到期）时间就会长
+                            if($remember)
+                                $expire=time()+3600*24*30;
+                            else{
+                                $expire=time()+$this->config_user['userloginttl'];
+                            }
+                            $key="atoken_".$admin->uid;
+                            setcookie("auid",$admin->uid,$expire,"/");
+                            setcookie($key,$token,$expire,"/");
+                            Redis::setex($key,$expire-time(),$token);
+                            Redis::del("left_".$admin->uid);
+                            $this->successMsg="欢迎回到 ".$this->config_basic['name']." 后台管理！";
                         }
-                        $key="atoken_".$admin->uid;
-                        setcookie("auid",$admin->uid,$expire,"/");
-                        setcookie($key,$token,$expire,"/");
-                        Redis::setex($key,$expire-time(),$token);
-                        Redis::del("left_".$admin->uid);
-                        $this->successMsg="欢迎回到 ".$this->config_basic['name']." 后台管理！";
                     }
                 }
             }
@@ -126,8 +140,10 @@ class AdminController extends Controller
         //返回刚才页面
         if($this->successMsg)
             $this->url=url()->previous();
-
         $this->getResult();
+        if($admin!==null){
+            $this->insertOperation($request,$admin->uid,"al");
+        }
         return $this->result->toJson();
     }
     public function logout(Request $request){
@@ -145,6 +161,9 @@ class AdminController extends Controller
         //返回初始界面
         $this->url=url()->previous();
         $this->getResult();
+        if($this->ladmin!==null){
+            $this->insertOperation($request,$this->ladmin->uid,"alo");
+        }
         return $this->result->toJson();
     }
     public function alter(Request $request,$config) {
@@ -168,6 +187,9 @@ class AdminController extends Controller
             $this->successMsg="修改 ".$config." 配置信息成功！";
         }
         $this->getResult();
+        if($this->ladmin!==null){
+            $this->insertOperation($request,$this->ladmin->uid,"aal");
+        }
         return $this->result->toJson();
     }
 }

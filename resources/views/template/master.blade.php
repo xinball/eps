@@ -168,7 +168,7 @@
                     <input type="password" class="form-control" id="uupwd" name="uupwd" v-model="upwd" placeholder="Password" @keyup.enter="login">
                     <label for="uupwd">请输入密码</label>
                 </div>
-                <button class="btn password-eye" type="button" onclick="changePwdtype(this,'upwd')"><i class="bi bi-eye-slash"></i></button>
+                <button class="btn password-eye" type="button" onclick="changePwdtype(this,'uupwd')"><i class="bi bi-eye-slash"></i></button>
             </div>
 
             <div class="checkbox mb-3">

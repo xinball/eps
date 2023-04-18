@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Problem;
-use App\Models\Tag;
 use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Library\CropAvatar;
@@ -14,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Http;
+
 
 
 class UserController extends Controller
@@ -46,26 +45,8 @@ class UserController extends Controller
         }
         return view('user.report')->with('rcactive',true);
     }
-    public function tagview(Request $request){
-        if (!$this->luser){
-            return $this->defaultUserView($request);
-        }
-        $tags=Tag::all();
-        $tids=Tag::getTidsByUid($this->luser->uid);
-        foreach($tags as $tag){
-            if(in_array($tag->tid,$tids)){
-                $tag->like=true;
-            }else{
-                $tag->like=false;
-            }
-        }
-        $this->result->tags=$tags;
-        return view('user.tag')->with('tactive',true)->with('result',$this->result->toJson());
-    }
-
-    
-    public function register(Request $request)
-    {
+    public function register(Request $request){
+        $user=null;
         $uname = $request->post('uname', null);
         $uemail = mb_strtolower($request->post('uemail', null));
         $uidno = mb_strtolower($request->post('uidno', null));
@@ -130,7 +111,7 @@ class UserController extends Controller
             if($user->save()){
                 $saveduser=User::where('uname',$uname)->first();
                 $activettl=$this->config_user['activettl'];
-                $this->successMsg="恭喜您注册成功，请进入您的<strong>邮箱激活账号</strong>吧！<br/>注意！链接将于".$activettl."日后过期，请及时激活！";
+                $this->successMsg="恭喜您注册成功，请进入您的<strong>邮箱 ".$user->uemail." 激活账号</strong>吧！<br/>注意！链接将于".$activettl."日后过期，请及时激活！";
                 $code=rand(100000,999999);
                 $activeExpire=3600*24*$activettl;
                 Redis::setex("active_".$saveduser->uid,$activeExpire,$code);
@@ -140,34 +121,14 @@ class UserController extends Controller
                     'link'=>config('var.ua')."?uid=$user->uid&code=$code",
                     'expire'=>date("Y-m-d H:i:s",$activeExpire+time())
                 ]);
-
-
-                // $email = new Email;
-                // $email->to = $uemail;
-                // $email->cc = 'zhouqing@xinball.top';
-                // $email->subject = 'XBOJ邮箱验证';
-                // $email->content = '请于24小时点击该链接完成验证. http://book.magina.com/service/validate_email'
-                //     . '?member_id=' . $member->id
-                //     . '&code=' . $uuid;
-
-                // $tempEmail = new TempEmail;
-                // $tempEmail->member_id = $member->id;
-                // $tempEmail->code = $uuid;
-                // $tempEmail->deadline = date('Y-m-d H-i-s', time() + 24*60*60);
-                // $tempEmail->save();
-
-                // Mail::send('email_register', ['m3_email' => $m3_email], function ($m) use ($m3_email) {
-                //     // $m->from('hello@app.com', 'Your Application');
-                //     $m->to($m3_email->to, '尊敬的用户')
-                //         ->cc($m3_email->cc)
-                //         ->subject($m3_email->subject);
-                // });
-
             }else{
                 $this->errMsg='注册用户失败！';
             }
         }
         $this->getResult();
+        if($user!==null){
+            $this->insertOperation($request,$user->uid,"ur");
+        }
         return $this->result->toJson();
     }
 
@@ -210,30 +171,46 @@ class UserController extends Controller
                         Redis::setex("left_".$user->uid,3600,$left-1);
                         $this->errMsg="密码错误，您还有".($left-1)."次机会！";  //错误次数
                     }else{
-                        $token=md5($user->uid.rand());
-                        if($remember!==null)
-                            $expire=time()+3600*24*30;
-                        else{
-                            $expire=time()+$this->config_user['userloginttl'];
+                        if(!$this->checkip($user,$ip)){
+                            $ipttl=$this->config_user['ipttl'];
+                            $this->warnMsg="您所在IP尚未登录过本站，请进入您的<strong>邮箱 ".$user->uemail." 点击链接</strong>绑定本机IP进行登录<br/>注意！链接将于".$ipttl."日后过期，请及时激活！";
+                            $code=rand(100000,999999).$ip;
+                            $ipExpire=3600*24*$ipttl;
+                            Redis::setex("ip_".$user->uid,$ipExpire,$code);
+                            Func::sendUserMail($user,[
+                                'subject'=>$this->config_basic['name']."-用户IP验证",
+                                'text'=>"IP验证",
+                                'link'=>config('var.ui')."?uid=$user->uid&code=$code",
+                                'expire'=>date("Y-m-d H:i:s",$ipExpire+time())
+                            ]);
+                        }else{
+                            $token=md5($user->uid.rand());
+                            if($remember!==null)
+                                $expire=time()+3600*24*30;
+                            else{
+                                $expire=time()+$this->config_user['userloginttl'];
+                            }
+                            $key="token_".$user->uid;
+                            setcookie("uid",$user->uid,$expire,"/");
+                            setcookie($key,$token,$expire,"/");
+                            Redis::setex($key,$expire-time(),$token);
+                            Redis::del("left_".$user->uid);
+                            $this->successMsg="欢迎回到 ".$this->config_basic['name']."！";
                         }
-                        $key="token_".$user->uid;
-                        setcookie("uid",$user->uid,$expire,"/");
-                        setcookie($key,$token,$expire,"/");
-                        Redis::setex($key,$expire-time(),$token);
-                        Redis::del("left_".$user->uid);
-                        $this->successMsg="欢迎回到 ".$this->config_basic['name']."！";
                     }
                 }
             }
         }
         //登陆成功返回原页面
-        if($this->successMsg)
+        if($this->successMsg){
             $this->url=url()->previous();
+        }
         $this->getResult();
+        if($user!==null){
+            $this->insertOperation($request,$user->uid,"ul");
+        }
         return $this->result->toJson();
     }
-
-
 
     //激活
     public function active(Request $request){
@@ -241,6 +218,7 @@ class UserController extends Controller
         $uid = $request->get('uid', null);
         $uidno = mb_strtolower($request->post('uidno', ""));
         $uname= $request->get('uname',null);
+        $user=null;
         //把输入的数据传进来
         $flag=true;
         //身份证号不为空
@@ -283,13 +261,13 @@ class UserController extends Controller
             $user = User::where('uid',$uid)->first();
             if($user){
                 if($user->utype==='d') {
-                    $this->warnMsg="该用户已被删除！";
+                    $this->errMsg="该用户已被删除！";
                 }elseif($user->utype!=='a') {
                     $this->infoMsg=$user->uname . "，您已成为正式用户，无需激活！";
                 }elseif(Func::isNum($code,6,6)){
                     if(!Redis::exists("active_".$uid)){
                         $this->errMsg="抱歉！您的激活链接已过期<br/>请重新申请激活！";
-                    }else if($code===Redis::get("active_".$uid)){
+                    }elseif($code===Redis::get("active_".$uid)){
                         if(User::where('uid',$uid)->update(['utype'=>'r'])){
                             Redis::del("active_".$uid);
                             $this->successMsg="<strong>恭喜您！</strong>您已成为".$this->config_basic['name']."正式用户！";
@@ -312,9 +290,13 @@ class UserController extends Controller
             $this->errMsg="抱歉！您的激活链接不正确<br/>请重新打开邮件内的链接进行激活！";
 
             //成功消息发出后，返回公告界面
-        if($this->successMsg)
+        if($this->successMsg){
             $this->url="/";
+        }
         $this->getResult();
+        if($user!==null){
+            $this->insertOperation($request,$user->uid,"ua");
+        }
         return view('user.active')->with('result',$this->result->toJson());
     }
 
@@ -325,6 +307,7 @@ class UserController extends Controller
         $uname= $request->get('uname',null);
         $upwd= $request->get('upwd',null);
         $upwd1= $request->get('upwd1',null);
+        $user=null;
         $flag=true;
         //身份证号不为空
         if ($uidno!==""){
@@ -353,7 +336,6 @@ class UserController extends Controller
                         'link'=>config('var.uf') . "?uid=$user->uid&code=$code",
                         'expire'=>date("Y-m-d H:i:s", $forgetExpire)
                     ]);
-
                 }
             }else{
                 $this->errMsg = "用户". $uname . "不存在，无法重置！";
@@ -415,7 +397,47 @@ class UserController extends Controller
         if($this->successMsg)
             $this->url="/";
         $this->getResult();
+        if($user!==null){
+            $this->insertOperation($request,$user->uid,"uf");
+        }
         return view('user.forget')->with('result',$this->result->toJson());
+    }
+    public function ipverify(Request $request){
+        $code = $request->get('code', null);
+        $uid = $request->get('uid', null);
+        $user = User::where('uid',$uid)->first();
+        $flag = false;
+        $this->url=null;
+        if($user){
+            if($user->utype==='d') {
+                $this->errMsg="该用户已被删除！";
+            }elseif($user->utype==='a') {
+                $this->warnMsg=$user->uname . "，您尚未激活，不能绑定IP！";
+            }else{
+                if(Redis::exists("ip_".$uid)&&$code===Redis::get("ip_".$uid)&&substr($code,6)===Func::getIp()){
+                    $flag=true;
+                    Redis::del("ip_".$user->uid);
+                    $token=md5($user->uid.rand());
+                    $expire=time()+$this->config_user['userloginttl'];
+                    $key="token_".$user->uid;
+                    setcookie("uid",$user->uid,$expire,"/");
+                    setcookie($key,$token,$expire,"/");
+                    Redis::setex($key,$expire-time(),$token);
+                    $this->successMsg="您的IP已验证，欢迎回到 ".$this->config_basic['name']."！";
+                }else{
+                    $flag=false;
+                }
+            }
+        }else{
+            $flag=false;
+        }
+        if(!$flag)
+            $this->errMsg="抱歉！您的绑定IP链接有误<br/>请重新申请！";
+        $this->getResult();
+        if($user!==null){
+            $this->insertOperation($request,$user->uid,"ui");
+        }
+        return view('notice.list')->with('result',$this->result->toJson());
     }
 
     //退出
@@ -434,9 +456,11 @@ class UserController extends Controller
         //返回到先前的页面
         $this->url=url()->previous();                //返回
         $this->getResult();
+        if($this->luser!==null){
+            $this->insertOperation($request,$this->luser->uid,"ulo");
+        }
         return $this->result->toJson();
     }
-
     //修改个人信息
     public function alter(Request $request) {
         if (!$this->luser){                                     //检测是否登陆
@@ -526,11 +550,11 @@ class UserController extends Controller
             }
         }
         $this->getResult();
+        if($this->luser!==null){
+            $this->insertOperation($request,$this->luser->uid,"ual");
+        }
         return $this->result->toJson();
     }
-
-
- 
     //修改个性签名
     public function alterslogan(Request $request) {
         if (!$this->luser){                    //看用户是否登录
@@ -557,9 +581,11 @@ class UserController extends Controller
                 }
         }
         $this->getResult();
+        if($this->luser!==null){
+            $this->insertOperation($request,$this->luser->uid,"uals");
+        }
         return $this->result->toJson();
     }
-
     //上传头像
     public function uploadavatar(Request $request){
         if (!$this->luser){
@@ -580,9 +606,11 @@ class UserController extends Controller
             );
             //'result' => $crop -> getMsg()
         }
+        if($this->luser!==null){
+            $this->insertOperation($request,$this->luser->uid,"uua",json_encode($response,JSON_UNESCAPED_UNICODE));
+        }
         echo json_encode($response);
     }
-
     //上传横幅
     public function uploadbanner(Request $request){
         if (!$this->luser){                          //用户没登录
@@ -601,8 +629,8 @@ class UserController extends Controller
                 'imgurl' => $crop -> getResult()."?".filectime(public_path($crop -> getResult())),
                 'message' => ($crop -> getMsg()!==null?$crop -> getMsg():"上传横幅成功！")
             );
-            //'result' => $crop -> getMsg()
         }
+        $this->insertOperation($request,$this->luser->uid,"uub",json_encode($response,JSON_UNESCAPED_UNICODE));
         echo json_encode($response);
     }
 
@@ -730,8 +758,6 @@ class UserController extends Controller
         $this->getResult();
         return $this->result->toJson();
     }
-
-
     //每种类用户有多少个
     public function getTypeNum(){
         $sql = User::select('utype',DB::raw("count('uid') as num"))->groupBy('utype');
@@ -750,7 +776,6 @@ class UserController extends Controller
         }
         return $typenum;
     }
-
     //上传东西
     public function upload(Request $request){
         if(!$this->luser){                    //看登录没有

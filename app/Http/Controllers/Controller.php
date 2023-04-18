@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Operation;
 use App\Models\Status;
 use App\Models\User;
 use App\Models\Tag;
@@ -15,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Redis;
+use Jenssegers\Agent\Agent;
 
 class Controller extends BaseController
 {
@@ -86,11 +88,19 @@ class Controller extends BaseController
                 Redis::setex($this->key,$expire-time(),$token);
             }
         }
-
-        //组件
-        // Blade::component('modal',Modal::class);
     }
-
+    public function checkip($user,$ip){
+        $ips = Operation::distinct()->select('oinfo->ip as ip')->where('uid',$user->uid)->where('oresult->status',1)
+        ->where(function ($query){
+            $query->orWhere('otype','ul')->orWhere('otype','al')->orWhere('otype','ui');
+        })->get();
+        foreach($ips as $item){
+            if($ip===$item['ip']){
+                return true;
+            }
+        }
+        return false;
+    }
     //用户权限
     public function authUser(): bool
     {
@@ -446,5 +456,26 @@ class Controller extends BaseController
         view()->share('statement',Func::getStatement());
         view()->share('ip',Func::getIp());
         
+    }
+    public function insertOperation($request,$uid,$type,$result=null){
+        $operation = new Operation();
+        $operation->uid=$uid;
+        $operation->otype=$type;
+        if($result===null){
+            $result=$this->result->toJson();
+        }
+        $operation->orequest=json_encode($request->all(),JSON_UNESCAPED_UNICODE);
+        $operation->oresult=$result;
+        $agent = new Agent();
+        $operation->oinfo=json_encode([
+            'ip' => Func::getIp(),
+            'browser' => $agent->browser(),
+            'browserv' => $agent->version($agent->browser()),
+            'platform' => $agent->platform(),
+            'platformv' => $agent->version($agent->platform()),
+            'device' => $agent->device(),
+            'languages' => $agent->languages(),
+        ],JSON_UNESCAPED_UNICODE);
+        $operation->save();
     }
 }

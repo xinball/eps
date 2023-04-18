@@ -19,10 +19,17 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Operation whereOinfo($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Operation whereOtime($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Operation whereUid($value)
+ * @property string $otype 操作类型
+ * @property mixed $orequest 请求
+ * @property mixed $oresult 操作结果
+ * @method static \Illuminate\Database\Eloquent\Builder|Operation whereOrequest($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Operation whereOresult($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Operation whereOtype($value)
  */
 class Operation extends Model
 {
     protected $table="operation";
     protected $primaryKey="oid";
+    public $timestamps=false;
     //
 }

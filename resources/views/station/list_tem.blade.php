@@ -103,7 +103,7 @@
             title="点击查看站点信息" data-bs-target="#info" @click="openinfo(index)"
     @endif>
                     <h5 class="mb-0 text-truncate" :title="station.sname"> <span v-if="station.sstate==='c'" class="badge bg-dark"> <i class="bi bi-building-slash"></i> </span>@{{ station.sname }} </h5>
-                    <h6 class="mb-0 opacity-75 input-group text-truncate" :title="station.sinfo.des"><span v-if="station.sinfo.p===true" class="badge btn" :class="{'btn-outline-info text-dark':params.service!=='p'&&params.service!=='','btn-info':params.service==='p'||params.service===''}" @click="setservice('p')">核酸</span>
+                    <h6 class="mb-0 opacity-75 input-group text-truncate" :title="station.sinfo.des"><span v-if="station.sinfo.p===true" class="badge btn" :class="{'btn-outline-info text-dark':params.service!=='p'&&params.service!=='','btn-info':params.service==='p'||params.service===''}" @click="setservice('p')"  >核酸</span>
                     <span v-if="station.sinfo.a===true" class="badge btn" :class="{'btn-outline-warning text-dark':params.service!=='a'&&params.service!=='','btn-warning':params.service==='a'||params.service===''}" @click="setservice('a')">抗原</span>
                     <span v-if="station.sinfo.v===true" class="badge btn" :class="{'btn-outline-success text-dark':params.service!=='v'&&params.service!=='','btn-success':params.service==='v'||params.service===''}" @click="setservice('v')">疫苗</span>
                     <span v-if="station.sinfo.r===true" class="badge btn" :class="{'btn-outline-danger text-dark':params.service!=='r'&&params.service!=='','btn-danger':params.service==='r'||params.service===''}" @click="setservice('r')">报备</span>&nbsp;@{{ getstationdes(station.sinfo.des) }}</h6>

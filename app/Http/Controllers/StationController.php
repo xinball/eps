@@ -372,6 +372,9 @@ class StationController extends Controller
             $this->errMsg="您不是管理员，没有权限添加站点！";
         }
         $this->getResult();
+        if($this->ladmin!==null){
+            $this->insertOperation($request,$this->ladmin->uid,"asi");
+        }
         return $this->result->toJson();
     }
     public function del(Request $request,$sid){
@@ -397,6 +400,9 @@ class StationController extends Controller
             $this->errMsg="您不是管理员，没有权限删除站点！";
         }
         $this->getResult();
+        if($this->ladmin!==null){
+            $this->insertOperation($request,$this->ladmin->uid,"asd");
+        }
         return $this->result->toJson();
     }
     public function alter(Request $request,$sid){
@@ -490,6 +496,9 @@ class StationController extends Controller
             $this->errMsg="您不是管理员，没有权限修改站点！";
         }
         $this->getResult();
+        if($this->ladmin!==null){
+            $this->insertOperation($request,$this->ladmin->uid,"asa");
+        }
         return $this->result->toJson();
     }
     public function recover(Request $request,$sid){
@@ -515,9 +524,11 @@ class StationController extends Controller
             $this->errMsg="您不是管理员，没有权限恢复站点！";
         }
         $this->getResult();
+        if($this->ladmin!==null){
+            $this->insertOperation($request,$this->ladmin->uid,"asr");
+        }
         return $this->result->toJson();
     }
-    
     public function uploadavatar(Request $request,$sid){
         if($this->ladmin!==null){
             $station=Station::where('sid',$sid)->first();
@@ -550,7 +561,7 @@ class StationController extends Controller
                 'message' => "您没有权限修改站点图片，请重新登录！"
             );
         }
+        $this->insertOperation($request,$this->ladmin->uid,"asu",json_encode($response,JSON_UNESCAPED_UNICODE));
         echo json_encode($response);
     }
-
 }

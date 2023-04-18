@@ -184,7 +184,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Mews\Purifier\PurifierServiceProvider::class,
-        \Chumper\Zipper\ZipperServiceProvider::class,
+        \Chumper\Zipper\ZipperServiceProvider::class,Jenssegers\Agent\AgentServiceProvider::class,
 
     ],
 
@@ -239,6 +239,7 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
         'Purifier' => Mews\Purifier\Facades\Purifier::class,
         'Zipper' => Chumper\Zipper\Zipper::class,
+        'Agent' => Jenssegers\Agent\Facades\Agent::class,
 
     ],
 
