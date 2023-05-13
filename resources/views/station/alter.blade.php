@@ -95,7 +95,20 @@
                     <div class="accordion-item" v-for="(sday,i) in station.stime">
                         <h2 class="accordion-header input-group">
                             <button class="accordion-button collapsed" style="width:90%" type="button" data-bs-toggle="collapse" :data-bs-target="'#stimealter'+i" aria-expanded="true" aria-controls="'stimealter'+i">
-                            @{{getDateType(i)}}
+                            @{{getDateType(i)+'-'+sday.length+'个配置'}}
+                            <div class="btn-fill">
+                                <div class="progress-stacked" v-for="(item,j) in sday">
+                                    <div class="progress" role="progressbar" :style="{width: getWidth('00:00',item.start)}">
+                                        <div class="progress-bar bg-light"></div>
+                                    </div>
+                                    <div class="progress" role="progressbar" :style="{width: getWidth(item.start,item.end)}">
+                                        <div class="progress-bar bg-success" v-text="item.start+'~'+item.end"></div>
+                                    </div>
+                                    <div class="progress" role="progressbar" :style="{width: getWidth(item.end,'24:00')}">
+                                        <div class="progress-bar bg-light"></div>
+                                    </div>
+                                </div>
+                            </div>
                             </button>
                             <button class="btn btn-outline-dark" @click="addstime(i)" style="width:10%"><i class="bi bi-plus-lg"></i></button>
                         </h2>
@@ -120,7 +133,7 @@
                     <div class="input-group">
                         <label class="input-group-text" for="slatalter"><i class="bi bi-globe2"></i></label>
                         <div class="form-floating">
-                            <input type="number" class="form-control" id="slatalter" min="3" max="54" v-model="station.slat" placeholder="纬度(°N)" required>
+                            <input type="number" class="form-control" id="slatalter" step="0.000001" min="3" max="54" v-model="station.slat" placeholder="纬度(°N)" required>
                             <label for="slatalter" class="form-label">纬度(°N)</label>
                         </div>
                     </div>
@@ -129,7 +142,7 @@
                     <div class="input-group">
                         <label class="input-group-text" for="slngalter"><i class="bi bi-globe"></i></label>
                         <div class="form-floating">
-                            <input type="number" class="form-control" id="slngalter" min="73" max="136" v-model="station.slng" placeholder="经度(°E)" required>
+                            <input type="number" class="form-control" id="slngalter" step="0.000001" min="73" max="136" v-model="station.slng" placeholder="经度(°E)" required>
                             <label for="slngalter" class="form-label">经度(°E)</label>
                         </div>
                     </div>
@@ -177,8 +190,8 @@
             <div class="row g-3">
                 <div class="col-md-12 input-group" v-for="(admin,index) in station.sadmin" :key="index">
                     <button type="button" class="badge bg-dark" disabled>@{{ index+1 }}</button>
-                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" :href="'/user/'+admin.uid">@{{ "#"+admin.uid+" "+admin.uname }}</a>
-                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" :href="'mailto:'+admin.uemail">@{{ admin.uemail }}</a>
+                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" title="进入该用户主页" :href="'/user/'+admin.uid">@{{ "#"+admin.uid+" "+admin.uname }}</a>
+                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" title="发邮件给该用户" :href="'mailto:'+admin.uemail">@{{ admin.uemail }}</a>
                     <button type="button" class="btn btn-outline-danger" @click="deluid(index)"><i class="bi bi-x-lg"></i></button>
                     <button type="button" class="btn btn-outline-info" @click="upuid(index)" :disabled="index===0"><i class="bi bi-arrow-up"></i></button>
                     <button type="button" class="btn btn-outline-secondary" @click="downuid(index)" :disabled="index===station.sadmin.length-1"><i class="bi bi-arrow-down"></i></button>
@@ -189,8 +202,8 @@
             <div class="row g-3">
                 <div class="col-md-12 input-group" v-for="(admin,index) in station.aadmin" :key="index">
                     <button type="button" class="badge bg-dark" disabled>@{{ index+1 }}</button>
-                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" :href="'/user/'+admin.uid">@{{ "#"+admin.uid+" "+admin.uname }}</a>
-                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" :href="'mailto:'+admin.uemail">@{{ admin.uemail }}</a>
+                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" title="进入该用户主页" :href="'/user/'+admin.uid">@{{ "#"+admin.uid+" "+admin.uname }}</a>
+                    <a class="form-control text-truncate btn btn-outline-secondary" target="_blank" title="发邮件给该用户" :href="'mailto:'+admin.uemail">@{{ admin.uemail }}</a>
                     <button type="button" class="text-truncate badge bg-dark" disabled>@{{ getAAdminTypes(admin.types) }}</button>
                 </div>
             </div>
@@ -199,6 +212,7 @@
             <textarea id="altereditor" class="ckeditor"></textarea>
         </div>
         <x-slot name="footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
             <button type="button" class="btn btn-outline-success"  @click="alter"><i class="bi bi-building-fill-gear"></i> 修改</button>
         </x-slot>
 
@@ -246,6 +260,7 @@
                 data() {
                     return{
                         index:0,
+                        sid:0,
                         uid:"",
                         sadmin:[],
                         station:{
@@ -303,11 +318,11 @@
                             region_id:this.station.region_id,
                             slat:this.station.slat,
                             slng:this.station.slng,
-                            approvetime:this.station.sinfo.approvetime,
-                            p:this.station.sinfo.p,
-                            a:this.station.sinfo.a,
-                            v:this.station.sinfo.v,
-                            r:this.station.sinfo.r,
+                            approvetime:this.station.sinfo.approvetime?"1":"0",
+                            p:this.station.sinfo.p?"1":"0",
+                            a:this.station.sinfo.a?"1":"0",
+                            v:this.station.sinfo.v?"1":"0",
+                            r:this.station.sinfo.r?"1":"0",
                             pnum:this.station.sinfo.pnum,
                             anum:this.station.sinfo.anum,
                             vnum:this.station.sinfo.vnum,
@@ -323,9 +338,14 @@
                         let that = this;
                         getData("{!! config('var.asa') !!}"+that.station.sid,function(json){
                             if(json.status===1){
-                                getData("{!! config('var.asl') !!}"+"?sid="+that.station.sid,function(tmp){
-                                    stationlistapp.stations[that.index]=tmp.data.stations.data[0];
-                                },null);
+                                if(typeof stationlistapp !== 'undefined'){
+                                    stationlistapp.getData();
+                                }else if(typeof stationapp !== 'undefined'){
+                                    getData("{!! config('var.asg') !!}"+that.station.sid,function(tmp){
+                                        stationapp.station=tmp.data.station;
+                                        stationapp.init();
+                                    },null);
+                                }
                             }
                         },"#alter-msg",data);
                     },
@@ -336,48 +356,11 @@
                             .catch( error => {console.error( error );} );
                         let that = this;
                         document.getElementById('alter').addEventListener('show.bs.modal',function(event){
-                            const sid = event.relatedTarget.getAttribute('data-bs-sid');
-                            that.index = event.relatedTarget.getAttribute('data-bs-index');
-                            getData("{!! config('var.asg') !!}"+sid,
+                            getData("{!! config('var.asg') !!}"+that.sid,
                             function(json){
                                 if(json.data!==null){
-                                    let station=json.data.station;
+                                    let station=getStation(json.data.station);
                                     document.title+="-"+station.sname;
-                                    station.sinfo=isJSON(station.sinfo);
-                                    if(!('a' in station.sinfo)){
-                                        station.sinfo.a=false;
-                                    }
-                                    if(!('p' in station.sinfo)){
-                                        station.sinfo.p=false;
-                                    }
-                                    if(!('r' in station.sinfo)){
-                                        station.sinfo.r=false;
-                                    }
-                                    if(!('v' in station.sinfo)){
-                                        station.sinfo.v=false;
-                                    }
-                                    if(!('des' in station.sinfo)){
-                                        station.sinfo.des="";
-                                    }
-                                    if(!('addr' in station.sinfo)){
-                                        station.sinfo.addr="";
-                                    }
-                                    if(!('time' in station.sinfo)){
-                                        station.sinfo.time="";
-                                    }
-                                    if(!('anum' in station.sinfo)){
-                                        station.sinfo.anum=0;
-                                    }
-                                    if(!('pnum' in station.sinfo)){
-                                        station.sinfo.pnum=0;
-                                    }
-                                    if(!('rnum' in station.sinfo)){
-                                        station.sinfo.rnum=0;
-                                    }
-                                    if(!('vnum' in station.sinfo)){
-                                        station.sinfo.vnum=0;
-                                    }
-                                    station.stime=isJSON(station.stime,true);
                                     if(station.stime===[]||station.stime.length!==7){
                                         station.stime=[[],[],[],[],[],[],[]];
                                     }
@@ -437,6 +420,14 @@
                     setstimeconfig(index){
                         this.station.stime=this.stimeconfigs[index].stime;
                     },
+                    getWidth(starttime,endtime){
+                        const end=getDayTime(endtime);
+                        const start=getDayTime(starttime);
+                        if(end>start)
+                            return(end-start)/864000+'%';
+                        else
+                            return 0;
+                    },
 
                     //改变时间配置方案
                     changestimeconfig(i){
@@ -451,18 +442,15 @@
                         }
                     },
                     insertuid(){
-                        if(!this.sadmin.includes(this.uid)){
+                        if(!this.sadmin.includes(parseInt(this.uid))){
                             let that=this;
                             getData("{!! config('var.aug') !!}"+this.uid,
                             function(json){
                                 if(json.data!==null&&'user' in json.data){
                                     that.sadmin.push(that.uid);
                                     that.station.sadmin.push(json.data.user);
-                                    echoMsg("#alter-msg",{status:1,message:"获取用户数据成功！"});
-                                }else{
-                                    echoMsg("#alter-msg",{status:4,message:"查询不到该编号对应的用户数据！"});
                                 }
-                            },echo=false,data=null,jump=false);
+                            },"#alter-msg",data=null,jump=false);
                         }else{
                             echoMsg("#alter-msg",{status:4,message:"该用户已添加"});
                         }

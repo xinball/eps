@@ -54,6 +54,7 @@
 
         <!--footer的作用是就算其他滑动了，footer的部分位置始终不变-->
         <x-slot name="footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
             <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#checkinsert">@{{ sendtypes[sendtype] }}</button>
         </x-slot>
     </x-modal>
@@ -101,7 +102,15 @@
                             data.ntime=this.ntime;
                         }
                         console.log(data);
-                        getData("{!! config('var.ani') !!}",null,"#insert-msg",data);
+                        getData("{!! config('var.ani') !!}",function(json){
+                            if(json.status===1){
+                                if(typeof noticelist !== 'undefined'){
+                                    noticelist.reset();
+                                    noticelist.getData();
+                                }
+                                $('#insert').modal("hide");
+                            }
+                        },"#insert-msg",data);
                         
                     },
 

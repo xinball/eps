@@ -28,33 +28,24 @@ Route::get('/notice/{nid}','NoticeController@indexview');    //
 Route::get('/station','StationController@listview');    //
 Route::get('/station/{sid}','StationController@indexview');    //
 
-Route::get('/contest','ContestController@listview');
-Route::get('/contest/{cid}','ContestController@indexview');
-
-Route::get('/status','StatusController@listview');
-Route::get('/status/{sid}','StatusController@indexview');
-
 Route::get('/user','UserController@settingview');          //
 Route::get('/user/active','UserController@activeview');    //激活
 Route::get('/user/forget','UserController@forgetview');    //忘记密码
 Route::get('/user/setting','UserController@settingview');   //
-Route::get('/user/problem','UserController@problemview');
-Route::get('/user/icontest','UserController@icontestview');
-Route::get('/user/jcontest','UserController@jcontestview');
-Route::get('/user/status','UserController@statusview');
-Route::get('/user/tag','UserController@tagview');
-Route::get('/user/{uid}','UserController@indexview');          //
-Route::post('/user/upload','UserController@upload');             //上传
+Route::get('/user/appoint','UserController@appointview');  
+Route::get('/user/report','UserController@reportview');  
+Route::get('/user/operation','UserController@operationview');  
+Route::get('/user/{uid}','UserController@indexview');
 
 Route::get('/admin','AdminController@settingview');
 Route::get('/admin/setting','AdminController@settingview');
 Route::get('/admin/notice','AdminController@noticeview');      //
-Route::get('/admin/tag','AdminController@tagview');
 Route::get('/admin/station','AdminController@stationview');    //
-Route::get('/admin/location','AdminController@locationview');
 Route::get('/admin/appoint','AdminController@appointview');
 Route::get('/admin/report','AdminController@reportview');
 Route::get('/admin/user','AdminController@userview');       //
+Route::get('/admin/operation','AdminController@operationview');  
+Route::get('/admin/area','AdminController@areaview');  
 
 
 //服务，不显示
@@ -63,6 +54,7 @@ Route::group(['prefix'=>'service'],function (){
         Route::get('/getaddr','SystemController@getaddr');
         Route::get('/getaddrlist','SystemController@getaddrlist');   //
         Route::get('/ping','SystemController@ping');
+        Route::get('/getoperation','SystemController@getOperation');
     });
     Route::group(['prefix'=>'user'],function (){
         Route::post('/login','UserController@login');                //
@@ -84,6 +76,9 @@ Route::group(['prefix'=>'service'],function (){
         Route::get('/logout','AdminController@logout');           //
         Route::post('/alter/{config}','AdminController@alter');
 
+        Route::group(['prefix'=>'area'],function (){
+            Route::get('/get','AreaController@get');
+        });
         Route::group(['prefix'=>'user'],function (){
             Route::get('/get/{uid}','UserController@aget');
             Route::get('/getlist','UserController@agetlist');
@@ -105,25 +100,11 @@ Route::group(['prefix'=>'service'],function (){
             Route::post('/alter/{sid}','StationController@alter');
             Route::post('/uploadavatar/{sid}','StationController@uploadavatar');    
         });
-        Route::group(['prefix'=>'location'],function (){
-            Route::get('/get/{lid}','LocationController@aget');
-            Route::get('/getlist','LocationController@agetlist');
-            Route::post('/insert','LocationController@insert');
-            Route::get('/del/{lid}','LocationController@del');
-            Route::get('/recover/{lid}','LocationController@recover');
-            Route::post('/alter/{lid}','LocationController@alter');
-        });
         Route::group(['prefix'=>'appoint'],function (){
             Route::get('/get/{aid}','AppointController@aget');
             Route::get('/getlist','AppointController@agetlist');
             Route::get('/approve/{aid}','AppointController@approve');
             Route::post('/refuse/{aid}','AppointController@refuse');
-        });
-        Route::group(['prefix'=>'report'],function (){
-            Route::get('/get/{rid}','ReportController@aget');
-            Route::get('/getlist','ReportController@agetlist');
-            Route::get('/approve/{rid}','ReportController@approve');
-            Route::post('/refuse/{rid}','ReportController@refuse');
         });
     });
     Route::group(['prefix'=>'notice'],function (){
@@ -134,34 +115,15 @@ Route::group(['prefix'=>'service'],function (){
         Route::get('/get/{sid}','StationController@get');
         Route::get('/getlist','StationController@getlist');
     });
-    Route::group(['prefix'=>'location'],function (){
-        Route::get('/get/{lid}','LocationController@get');
-        Route::get('/getlist','LocationController@getlist');
-    });
     Route::group(['prefix'=>'appoint'],function (){
         Route::get('/get/{aid}','AppointController@get');
         Route::get('/getlist','AppointController@getlist');
-        Route::get('/del/{aid}','AppointController@del');
-        Route::get('/recover/{aid}','AppointController@recover');
-        Route::post('/insert','AppointController@insert');
-        Route::post('/alter','AppointController@alter');
+        Route::get('/del/{aid}','AppointController@del');     //
+        Route::get('/recover/{aid}','AppointController@recover');  //
+        Route::post('/insert','AppointController@insert');   //
+        Route::post('/alter','AppointController@alter');    //
         Route::post('/cancel/{aid}','AppointController@cancel');
         Route::get('/apply/{aid}','AppointController@apply');
-    });
-    Route::group(['prefix'=>'report'],function (){
-        Route::get('/get/{rid}','ReportController@get');
-        Route::get('/getlist','ReportController@getlist');
-        Route::get('/del/{rid}','ReportController@del');
-        Route::get('/recover/{rid}','ReportController@recover');
-        Route::post('/insert','ReportController@insert');
-        Route::post('/alter','ReportController@alter');
-        Route::post('/cancel/{rid}','ReportController@cancel');
-        Route::get('/apply/{rid}','ReportController@apply');
-    });
-
-
-    Route::group(['prefix'=>'activity'],function (){
-        Route::get('/get/{uid}/{aid}','ActivityController@get');
-        Route::get('/getlist/{uid}','ActivityController@getlist');
+        Route::post('/alter/{aid}','AppointController@alter');
     });
 });

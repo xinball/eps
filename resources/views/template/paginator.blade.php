@@ -16,7 +16,7 @@
         {{-- v-if="i>=paginator.pre&&i<=paginator.next" --}}
         {{-- :class="[i==paginator.current_page]" --}}
         <li v-for="page in paginator.pagelist" :key="page"  class="page-item"  :class="{active:page===paginator.current_page}" aria-current="page">
-            <span v-if="page===paginator.current_page" ><label><input id="pageTo" type="number" v-model="paramspre.page" v-on:keyup.enter="getData" min="1" :max="paginator.last_page" />/<span style="font-size:12px;">@{{ paginator.last_page }}</span></label></span>
+            <span v-if="page===paginator.current_page" ><label><input id="pageTo" type="number" v-model="paramspre.page" v-on:keyup.enter="setpage(paramspre.page)" min="1" :max="paginator.last_page" />/<span style="font-size:12px;">@{{ paginator.last_page }}</span></label></span>
             
             <a v-else class="page-link" @click="setpage(page)">@{{ page }}</a>
         </li>

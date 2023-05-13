@@ -121,7 +121,7 @@
                     <div class="input-group">
                         <label class="input-group-text" for="slat"><i class="bi bi-globe2"></i></label>
                         <div class="form-floating">
-                            <input type="number" class="form-control" id="slat" min="3" max="54" v-model="slat" placeholder="纬度(°N)" required>
+                            <input type="number" class="form-control" id="slat" step="0.000001" min="3" max="54" v-model="slat" placeholder="纬度(°N)" required>
                             <label for="slat" class="form-label">纬度(°N)</label>
                         </div>
                     </div>
@@ -130,7 +130,7 @@
                     <div class="input-group">
                         <label class="input-group-text" for="slng"><i class="bi bi-globe"></i></label>
                         <div class="form-floating">
-                            <input type="number" class="form-control" id="slng" min="73" max="136" v-model="slng" placeholder="经度(°E)" required>
+                            <input type="number" class="form-control" id="slng" step="0.000001" min="73" max="136" v-model="slng" placeholder="经度(°E)" required>
                             <label for="slng" class="form-label">经度(°E)</label>
                         </div>
                     </div>
@@ -171,6 +171,7 @@
             <textarea id="deseditor" class="ckeditor"></textarea>
         </div>
         <x-slot name="footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
             <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#checkinsert"><i class="bi bi-building-fill-add"></i> 创建</button>
         </x-slot>
     </x-modal>
@@ -234,11 +235,11 @@
                             region_id:this.region_id,
                             slat:this.slat,
                             slng:this.slng,
-                            approvetime:this.approvetime,
-                            p:this.p,
-                            a:this.a,
-                            v:this.v,
-                            r:this.r,
+                            approvetime:this.approvetime?"1":"0",
+                            p:this.p?"1":"0",
+                            a:this.a?"1":"0",
+                            v:this.v?"1":"0",
+                            r:this.r?"1":"0",
                             pnum:this.pnum,
                             anum:this.anum,
                             vnum:this.vnum,

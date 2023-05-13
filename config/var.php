@@ -1,7 +1,7 @@
 <?php
 
 
- //路由变量配置                            //相当于别名
+ //路径变量配置                            //相当于别名
 return [
     'ug'=> config('app.url')."/service/user/get/",
     'ual'=>config('app.url')."/service/user/alter",
@@ -37,28 +37,23 @@ return [
     'asd'=>config('app.url')."/service/admin/station/del/",
     'asa'=>config('app.url')."/service/admin/station/alter/",
     'asu'=>config('app.url')."/service/admin/station/uploadavatar/",
-    'ass'=>config('app.url')."/service/admin/station/setadmin/",
     'asr'=>config('app.url')."/service/admin/station/recover/",
-
-    'alg'=>config('app.url')."/service/admin/location/get/",
-    'all'=>config('app.url')."/service/admin/location/getlist",
-    'ali'=>config('app.url')."/service/admin/location/insert/",
-    'ald'=>config('app.url')."/service/admin/location/del/",
-    'ala'=>config('app.url')."/service/admin/location/alter/",
-    'alr'=>config('app.url')."/service/admin/location/recover/",
-
+    
     'sga'=>config('app.url')."/service/system/getaddr/",
     'sla'=>config('app.url')."/service/system/getaddrlist",
+    'sgo'=>config('app.url')."/service/system/getoperation",
+    
+    'aag'=>config('app.url')."/service/admin/area/get/",
 
-    'apg'=>config('app.url')."/service/appoint/get/",
-    'apl'=>config('app.url')."/service/appoint/getlist",
-    'apa'=>config('app.url')."/service/appoint/approve/",
-    'apr'=>config('app.url')."/service/appoint/refuse/",
+    'apg'=>config('app.url')."/service/admin/appoint/get/",
+    'apl'=>config('app.url')."/service/admin/appoint/getlist",
+    'apa'=>config('app.url')."/service/admin/appoint/approve/",
+    'apr'=>config('app.url')."/service/admin/appoint/refuse/",
 
-    'arg'=>config('app.url')."/service/report/get/",
-    'arl'=>config('app.url')."/service/report/getlist",
-    'ara'=>config('app.url')."/service/report/approve/",
-    'arr'=>config('app.url')."/service/report/refuse/",
+    'arg'=>config('app.url')."/service/admin/report/get/",
+    'arl'=>config('app.url')."/service/admin/report/getlist",
+    'ara'=>config('app.url')."/service/admin/report/approve/",
+    'arr'=>config('app.url')."/service/admin/report/refuse/",
 
 
     'ng'=>config('app.url')."/service/notice/get/",
@@ -72,11 +67,12 @@ return [
     
     'pg'=>config('app.url')."/service/appoint/get/",
     'pl'=>config('app.url')."/service/appoint/getlist",
-    //'pd'=>config('app.url')."/service/appoint/del/",
-    //'pr'=>config('app.url')."/service/appoint/recover",
+    'pd'=>config('app.url')."/service/appoint/del/",
+    'pr'=>config('app.url')."/service/appoint/recover/",
     'pi'=>config('app.url')."/service/appoint/insert/",
     'pc'=>config('app.url')."/service/appoint/cancel/",
     'pa'=>config('app.url')."/service/appoint/apply/",
+    'pal'=>config('app.url')."/service/appoint/alter/",
 
     'rg'=>config('app.url')."/service/report/get/",
     'rl'=>config('app.url')."/service/report/getlist",
@@ -85,12 +81,4 @@ return [
     'ri'=>config('app.url')."/service/report/insert/",
     'rc'=>config('app.url')."/service/report/cancel/",
     'ra'=>config('app.url')."/service/report/apply/",
-
-    'avg'=>config('app.url')."/service/activity/get/",
-    'avl'=>config('app.url')."/service/activity/getlist",
-    
-    'tg'=>config('app.url')."/service/tag/get/",
-    'tl'=>config('app.url')."/service/tag/getlist",
-    'til'=>config('app.url')."/service/tag/like/",
-    'tdl'=>config('app.url')."/service/tag/dellike/",
 ];

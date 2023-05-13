@@ -17,50 +17,54 @@ use Illuminate\Support\Facades\Redis;
 
 class AdminController extends Controller
 {
-    private function checkauth(){
-        if($this->ladmin!==null&&($this->ladmin->utype==='s'||$this->ladmin->utype==='x')){
-            return true;
-        }
-        return false;
-    }
     public function settingview(Request $request){
-        if (!$this->checkauth()){
+        if (!$this->checkauth("x")){
             return $this->defaultAdminView($request);
         }
         return view('admin.setting')->with('seactive',true);
     }
     public function noticeview(Request $request){
-        if (!$this->checkauth()){
+        if (!$this->checkauth("s")){
             return $this->defaultAdminView($request);
         }
         return view('admin.notice')->with('nactive',true);
     }
     public function userview(Request $request){
-        if (!$this->checkauth()){
+        if (!$this->checkauth("s")){
             return $this->defaultAdminView($request);
         }
-        return view('admin.user')->with('uactive',true)->with('ban',Redis::lrange('ban',0,-1));
+        return view('admin.user')->with('uactive',true);
     }
     public function stationview(Request $request){
-        if (!$this->ladmin){
+        if (!$this->checkauth()){
             return $this->defaultAdminView($request);
         }
         return view('admin.station')->with('sactive',true);
     }
     public function appointview(Request $request){
-        if (!$this->ladmin){
+        if (!$this->checkauth()){
             return $this->defaultAdminView($request);
         }
         return view('admin.appoint')->with('aactive',true);
     }
     public function reportview(Request $request){
-        if (!$this->ladmin){
+        if (!$this->checkauth()){
             return $this->defaultAdminView($request);
         }
         return view('admin.report')->with('ractive',true);
     }
-
-
+    public function operationview(Request $request){
+        if (!$this->checkauth("s")){
+            return $this->defaultAdminView($request);
+        }
+        return view('admin.operation')->with('oactive',true);
+    }
+    public function areaview(Request $request){
+        if (!$this->checkauth("s")){
+            return $this->defaultAdminView($request);
+        }
+        return view('admin.area')->with('aractive',true);
+    }
     public function login(Request $request) {
         //得到登录时的IP
         $ip=Func::getIp();
@@ -69,13 +73,13 @@ class AdminController extends Controller
             $this->getResult();
             return $this->result->toJson();
         }
-
         //存放输入的数据
         $uidno = mb_strtolower($request->post('uidno', null));
         $uname = $request->post('uname', null);
         $upwd = $request->post('upwd', '');
         $remember = $request->post('remember', '');
         
+        //从数据库中得到这个管理员
         $admin = $this->getUserBy($uidno);
         if($admin == null) {
             $this->errMsg = '该管理员不存在！';
@@ -102,56 +106,58 @@ class AdminController extends Controller
                     //password存真正的密码
                     $password=json_decode($admin->upwd);
                     if(md5($password->auth . $upwd) != $password->pwd) {
-                        $left=Redis::exists("left_".$admin->uid)?Redis::get("left_".$admin->uid):6;
                         Redis::setex("left_".$admin->uid,3600,$left-1);
                         $this->errMsg="密码错误，您还有".($left-1)."次机会！";
                     }else{
-                        if(!$this->checkip($admin,$ip)){
-                            $ipttl=$this->config_user['ipttl'];
-                            $this->warnMsg="您所在IP尚未登录过本站，请进入您的<strong>邮箱 ".$admin->uemail." 点击链接</strong>绑定本机IP进行登录<br/>注意！链接将于".$ipttl."日后过期，请及时激活！";
-                            $code=rand(100000,999999).$ip;
-                            $ipExpire=3600*24*$ipttl;
-                            Redis::setex("ip_".$admin->uid,$ipExpire,$code);
-                            Func::sendUserMail($admin,[
-                                'subject'=>$this->config_basic['name']."-用户IP验证",
-                                'text'=>"IP验证",
-                                'link'=>config('var.ui')."?uid=$admin->uid&code=$code",
-                                'expire'=>date("Y-m-d H:i:s",$ipExpire+time())
-                            ]);
+                        if($this->ladmin&&$admin->uid===$this->ladmin->uid){
+                            $this->infoMsg="该用户已登录，无需再次登录！";
                         }else{
-                            $token=md5($admin->uid.rand());
-                            //如果选择保存expire（到期）时间就会长
-                            if($remember)
-                                $expire=time()+3600*24*30;
-                            else{
-                                $expire=time()+$this->config_user['userloginttl'];
+                            $this->getUser($admin);
+                            if(isset($admin->uinfo->safe)&&$admin->uinfo->safe==='1'&&!$this->checkip($admin,$ip)){
+                                $ipttl=$this->config_user['ipttl'];
+                                $this->warnMsg="您所在IP尚未登录过本站，请进入您的<strong>邮箱 ".$admin->uemail."</strong> 绑定本机IP进行登录<br/>注意！链接将于".$ipttl."日后过期，请及时激活！";
+                                $code=rand(100000,999999).$ip;
+                                $ipExpire=3600*24*$ipttl;
+                                Redis::setex("ip_".$admin->uid,$ipExpire,$code);
+                                Func::sendUserMail($admin,[
+                                    'subject'=>$this->config_basic['name']."-用户IP验证",
+                                    'text'=>"IP验证",
+                                    'link'=>config('var.ui')."?uid=$admin->uid&code=$code",
+                                    'expire'=>date("Y-m-d H:i:s",$ipExpire+time())
+                                ]);
+                            }else{
+                                $token=md5($admin->uid.rand());
+                                //如果选择保存expire（到期）时间就会长
+                                if($remember)
+                                    $expire=time()+3600*24*30;
+                                else{
+                                    $expire=time()+$this->config_user['userloginttl'];
+                                }
+                                $key="atoken_".$admin->uid;
+                                setcookie("auid",$admin->uid,$expire,"/");
+                                setcookie($key,$token,$expire,"/");
+                                Redis::setex($key,$expire-time(),$token);
+                                Redis::del("left_".$admin->uid);
+                                $this->successMsg="欢迎回到 ".$this->config_basic['name']." 后台管理！";
+                                $this->url=url()->previous();
                             }
-                            $key="atoken_".$admin->uid;
-                            setcookie("auid",$admin->uid,$expire,"/");
-                            setcookie($key,$token,$expire,"/");
-                            Redis::setex($key,$expire-time(),$token);
-                            Redis::del("left_".$admin->uid);
-                            $this->successMsg="欢迎回到 ".$this->config_basic['name']." 后台管理！";
+                            //返回刚才页面
+                            $this->insertOperation($request,$admin->uid,"al");
                         }
                     }
                 }
             }
         }
-        //返回刚才页面
-        if($this->successMsg)
-            $this->url=url()->previous();
         $this->getResult();
-        if($admin!==null){
-            $this->insertOperation($request,$admin->uid,"al");
-        }
         return $this->result->toJson();
     }
     public function logout(Request $request){
-        //看看管理员是否处于登录状态
-        if($this->ladmin){
+        $uid=null;
+        if($this->ladmin){//看看管理员是否处于登录状态
             setcookie("auid","",0,"/");
             setcookie($this->akey,"",0,"/");
             Redis::del($this->akey);
+            $uid=$this->ladmin->uid;
             $this->ladmin=null;
             view()->share('ladmin',null);
             $this->successMsg="管理员退出登录成功！";
@@ -160,21 +166,21 @@ class AdminController extends Controller
         }
         //返回初始界面
         $this->url=url()->previous();
-        $this->getResult();
-        if($this->ladmin!==null){
-            $this->insertOperation($request,$this->ladmin->uid,"alo");
+        if($this->successMsg){
+            $this->insertOperation($request,$uid,"alo");
         }
+        $this->getResult();
         return $this->result->toJson();
     }
     public function alter(Request $request,$config) {
-        if (!checkauth()){
+        if (!$this->checkauth("x")){                 //只有系统管理员可以修改网站配置
             $this->errMsg="您没有权限修改网站配置信息，请重新登录！";
         }else{
-            if($config==='ban'){
-                $bans=json_decode($request->post('ban','[]'),true);
-                Redis::del('ban');
+            if($config==='bans'){
+                $bans=json_decode($request->post('bans','[]'),true);
+                Redis::del('bans');
                 foreach($bans as $ban){
-                    Redis::LPUSH('ban',$ban);
+                    Redis::LPUSH('bans',$ban);
                 }
             }else{
                 $params=$request->all();
@@ -186,10 +192,10 @@ class AdminController extends Controller
             }
             $this->successMsg="修改 ".$config." 配置信息成功！";
         }
-        $this->getResult();
-        if($this->ladmin!==null){
+        if($this->successMsg){
             $this->insertOperation($request,$this->ladmin->uid,"aal");
         }
+        $this->getResult();
         return $this->result->toJson();
     }
 }

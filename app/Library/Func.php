@@ -141,7 +141,7 @@ class Func
     }
     //是否是浮点数
     static public function isDec($num,$min=1,$max=10){
-        $pattern="/^-?[0-9]{".$min.",".$max."}(\.[0-9]{1,})$/";
+        $pattern="/^-?[0-9]{".$min.",".$max."}(\.[0-9]{1,})?$/";
         return (bool)preg_match($pattern, $num);
     }
     static public function isNick($nick,$min=2,$max=20){
@@ -187,7 +187,7 @@ class Func
     }
 
     static public function checkNextDay($v){
-        return (strtotime($v)>=strtotime(date("Y-m-d"),time())+86400)&&(strtotime($v)<=strtotime(date("Y-m-d"),time())+691200);
+        return (strtotime($v)>=strtotime(date("Y-m-d",strtotime("+1 day"))))&&(strtotime($v)<=strtotime(date("Y-m-d",strtotime("+8 day"))));
     }
     static public function checkDay($v,$wtime){
         $val=strtotime($v);
@@ -195,9 +195,9 @@ class Func
         if(count($dtime)===0){
             return false;
         }
-        $val-=strtotime(date("Y-m-d"),$v);
+        $val-=strtotime(date("Y-m-d",$val));
         foreach($dtime as $item){
-            if($item['start']<=$val&&$item['end']>=$val){
+            if(strtotime($item['start'])-strtotime("00:00")<=$val&&strtotime($item['end'])-strtotime("00:00")>=$val){
                 return true;
             }
         }

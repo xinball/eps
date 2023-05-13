@@ -58,7 +58,7 @@
     <!--最上方会出现的消息框，比如“退出登录成功”-->
 <div id="msg" style="z-index:2000;position: fixed;width: 100%;top:0;"></div>          
 <!--加载的小圆圈-->
-<div id="loading" class="spinner-border" style="z-index:4000;display:none;position: fixed;top: 50%;left: 50%;width: 3rem; height: 3rem;" role="status">
+<div id="loading" class="spinner-grow" style="z-index:4000;display:none;position: fixed;top: 50%;left: 50%;width: 3rem; height: 3rem;color: #0000004f;" role="status">
     <span class="visually-hidden">Loading...</span>
   </div>
   <!--整个上方的索引框-->
@@ -80,13 +80,13 @@
         <div class="collapse navbar-collapse dl-horizontal" id="navbarCollapse" style="margin-left: 10px;">
             <ul id="navs" class="nav nav-tabs navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                    <a class="nav-link {{ isset($nactive)&&$nactive?"active":"" }}" href="/"><i class="bi bi-easel2-fill"></i> 公告</a>
+                    <a class='nav-link {{ isset($nactive)&&$nactive?"active":"" }}' href="/"><i class="bi bi-easel2-fill"></i> 公告</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ isset($sactive)&&$sactive?"active":"" }}" href="/station"><i class="bi bi-buildings-fill"></i> 站点</a>
+                    <a class='nav-link {{ isset($sactive)&&$sactive?"active":"" }}' href="/station"><i class="bi bi-buildings-fill"></i> 站点</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ isset($pactive)&&$pactive?"active":"" }}" href="/policy"><i class="bi bi-card-list"></i> 政策</a>
+                    <a class='nav-link {{ isset($pactive)&&$pactive?"active":"" }}' href="/policy"><i class="bi bi-card-list"></i> 政策</a>
                 </li>
             </ul>
             <!--右上方的模块-->
@@ -98,13 +98,15 @@
                     <a href="#" class="btn btn-fill btn-deepskyblue rounded-pill dropdown-toggle" data-bs-toggle="dropdown" id="DropdownUser" role="button" aria-expanded="false">
                         <img src="{{$luser->avatar}}" style="border-radius: 5px;height:24px;border:1px solid #ffffff70;"> {{$luser->uname}}</a>
                     <ul class="dropdown-menu" aria-labelledby="DropdownUser">
-                        <li><a class="dropdown-item" target="_blank" href="/user/setting"><i class="bi bi-gear-wide-connected"></i> 个人设置</a></li>
                         <li><a class="dropdown-item" target="_blank" href="/user/appoint"><i class="bi bi-calendar-event-fill"></i> 预约管理</a></li>
                         <li><a class="dropdown-item" target="_blank" href="/user/report"><i class="bi bi-clipboard-fill"></i> 报备管理</a></li>
-                        <li><a class="dropdown-item" target="_blank" href="/user/feedback"><i class="bi bi-exclamation-octagon-fill"></i> 反馈</a></li>
+                        <li><a class="dropdown-item" target="_blank" href="/user/setting"><i class="bi bi-gear-wide-connected"></i> 个人设置</a></li>
+                        <li><a class="dropdown-item" target="_blank" href="/user/operation"><i class="bi bi-menu-button-wide-fill"></i> 个人日志</a></li>
+                        <!-- <li><a class="dropdown-item" target="_blank" href="/user/feedback"><i class="bi bi-exclamation-octagon-fill"></i> 反馈</a></li> -->
                         <!--分割线-->
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" target="_blank" href="/user/{{$luser->uid}}"><i class="bi bi-house-fill"></i> 个人空间</a></li>
+                        <!--点击后执行函数-->
                         <li><a class="dropdown-item" href="#" @click="ulogout"><i class="bi bi-box-arrow-right"></i> 退出登录</a></li>
                         <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#login"><i class="bi bi-box-arrow-in-right"></i> 登录其他用户</a></li>
                     </ul>
@@ -119,11 +121,18 @@
                         <img src="{{$ladmin->avatar}}" style="border-radius: 5px;height:24px;border:1px solid #ffffff70;"> {{$ladmin->uname}}</a>
                     <ul class="dropdown-menu" aria-labelledby="DropdownAdmin">
                         <li><a class="dropdown-item" target="_blank" href="/admin/appoint"><i class="bi bi-calendar-event-fill"></i> 预约管理</a></li>
+                        <li><a class="dropdown-item" target="_blank" href="/admin/report"><i class="bi bi-clipboard-fill"></i> 报备管理</a></li>
                         <li><a class="dropdown-item" target="_blank" href="/admin/station"><i class="bi bi-geo-fill"></i> 管理站点</a></li>
 @if ($ladmin->utype==='s'||$ladmin->utype==='x')
-                        <li><a class="dropdown-item" target="_blank" href="/admin/user"><i class="bi bi-person-fill-gear"></i> 管理用户</a></li>
+                        <!--普通管理员和系统管理员都有-->
                         <li><a class="dropdown-item" target="_blank" href="/admin/notice"><i class="bi bi-easel2-fill"></i> 管理公告</a></li>
+                        <li><a class="dropdown-item" target="_blank" href="/admin/area"><i class="bi bi-map-fill"></i> 管理区域</a></li>
+@if ($ladmin->utype==='x')
+                        <!--只有系统管理员可以修改网站配置-->
+                        <li><a class="dropdown-item" target="_blank" href="/admin/user"><i class="bi bi-person-fill-gear"></i> 管理用户</a></li>
+                        <li><a class="dropdown-item" target="_blank" href="/admin/operation"><i class="bi bi-menu-button-wide-fill"></i> 用户日志</a></li>
                         <li><a class="dropdown-item" target="_blank" href="/admin/setting"><i class="bi bi-gear-fill"></i> 网站配置</a></li>
+@endif
 @endif
                         <!--分割线-->
                         <li><hr class="dropdown-divider"></li>
@@ -177,7 +186,7 @@
                 </label>
             </div>
             <!--执行脚本-->
-            <button class="w-100 btn btn-lg btn-success" @click="login()" type="button">登录</button>
+            <button class="w-100 btn btn-lg btn-success" @click="login()" type="button" :disabled="disabled">登录</button>
         </form>
         <!--跳转-->
         <a href="#" class="link-primary link-nounderline left" data-bs-toggle="modal" data-bs-target="#register" >立即注册</a>
@@ -220,7 +229,7 @@
                     <input type="checkbox" id="aremember" class="form-check-input" v-model="aremember" name="aremember" value="1"> 记住密码
                 </label>
             </div>
-            <button class="w-100 btn btn-lg btn-success" @click="alogin()" type="button">登录</button>
+            <button class="w-100 btn btn-lg btn-success" @click="alogin()" type="button" :disabled="disabled">登录</button>
         </form>
     </div>
 </x-modal>
@@ -276,7 +285,7 @@
                 </div>
                 <button class="btn password-eye" type="button" onclick="changePwdtype(this,'rupwd1')"><i class="bi bi-eye-slash"></i></button>
             </div>
-            <button class="w-100 btn btn-lg btn-success" @click="register()" type="button">注册</button>
+            <button class="w-100 btn btn-lg btn-success" @click="register()" type="button" :disabled="disabled">注册</button>
         </form>
         <a href="#" class="link-primary link-nounderline left" data-bs-toggle="modal" data-bs-target="#login" >立即登录！</a>
         <a href="/user/active" target="_blank" class="link-primary link-nounderline" >用户激活</a>
@@ -318,6 +327,7 @@
     const aloginapp=Vue.createApp({
         data() {
             return {
+                disabled:false,
                 aname:"",
                 apwd:"",
                 aremember:"",
@@ -341,15 +351,23 @@
                 },false,null,false);
             },
             alogin:function (){
+                if(this.disabled)
+                    return;
+                this.disabled=true;
                 let data={
                     uname:this.aname,
                     upwd:this.apwd,
                     uidno:this.aidno,
                     remember:this.aremember,
                     _token:"{{csrf_token()}}"
-                }
+                };
+                const that = this;
                 //管理员登录操作
-                getData("{!! config('var.al') !!}",null,"#alogin-msg",data);
+                getData("{!! config('var.al') !!}",function(json){
+                    if(json.status!==1){
+                        that.disabled=false;
+                    }
+                },"#alogin-msg",data);
             }
         }
     }).mount("#aloginapp");
@@ -359,6 +377,7 @@
     const loginapp=Vue.createApp({
         data() {
             return {
+                disabled:false,
                 uname:"",
                 upwd:"",
                 uidno:"",
@@ -381,6 +400,9 @@
                 },false,null,false);
             },
             login(){
+                if(this.disabled)
+                    return;
+                this.disabled=true;
                 let data={
                     uname:this.uname,
                     upwd:this.upwd,
@@ -388,8 +410,13 @@
                     remember:this.uremember,
                     _token:"{{csrf_token()}}"
                 };
+                const that = this;
                 //把数据post进去，进行登陆操作
-                getData("{!! config('var.ul') !!}",null,"#login-msg",data);
+                getData("{!! config('var.ul') !!}",function(json){
+                    if(json.status!==1){
+                        that.disabled=false;
+                    }
+                },"#login-msg",data);
             }
         }
     }).mount("#loginapp");
@@ -398,6 +425,7 @@
     const registerapp=Vue.createApp({
         data() {
             return {
+                disabled:false,
                 runame:"",
                 ruemail:"",
                 rupwd:"",
@@ -409,6 +437,9 @@
         },
         methods:{
             register:function (){
+                if(this.disabled)
+                    return;
+                this.disabled=true;
                 let that=this;
                 let data={
                     uname:this.runame,
@@ -420,7 +451,11 @@
                     _token:"{{csrf_token()}}"
                 };
                 //把输入的数据post进去进行注册操作
-                getData("{!! config('var.ur') !!}",null,"#register-msg",data);
+                getData("{!! config('var.ur') !!}",function(json){
+                    if(json.status!==1){
+                        that.disabled=false;
+                    }
+                },"#register-msg",data);
             }
         }
     }).mount("#registerapp");

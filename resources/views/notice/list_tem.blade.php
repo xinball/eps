@@ -7,8 +7,8 @@
                 <div class="input-group">
                     <select class="form-select" v-model="params.order">
                         <option v-for="(ordertype,index) in ordertypes" :key="index" :label="ordertype" :value="index">@{{ ordertype }}</option>
-                        <option value="0" label="默认排序【序号倒序】">默认排序【序号倒序】</option>
                     </select>
+                    <button type="button" class="btn btn-outline-dark" @click="set('desc')" :title="params.desc==='0'?'正序【从早到晚】':'倒序【从晚到早】'"><i class="bi" :class="{'bi-sort-up-alt':params.desc==='0','bi-sort-up':params.desc==='1'}" ></i></button>
                     <button type="button" class="btn btn-outline-info" @click="reset">重置 <i class="bi bi-arrow-clockwise"></i></button>
                     <button type="button" class="btn btn-outline-success" data-bs-dismiss="offcanvas"   @click="getData(params)">查询 <i class="bi bi-search"></i></button>
                 </div>
@@ -35,8 +35,7 @@
             <div class="mb-3 col-12 form-floating">
                 <select class="form-select" v-model="params.type" id="paramstype">
                     <option v-for="(ntype,index) in ntypes" :key="index" :label="ntype.label" :value="index">@{{ ntype.label }}</option>
-                    
-                    <option value="0" label="未选择公告类型">未选择公告类型</option>
+                    <option value="" label="所有公告类型">所有公告类型</option>
                 </select>
                 <label for="paramstype">公告类型</label>
             </div>
@@ -49,7 +48,7 @@
 
 @if (isset($utype)&&$utype==="a")
     <div class="input-group     justify-content-center">
-        <button v-for="(dis,index) in adis" style="" @click="settype(index)" class="btn" :class="[params.type===index?'btn-'+dis.btn:'btn-outline-'+dis.btn]" :disabled="data.num[index]===0">
+        <button v-for="(dis,index) in adis" style="" @click="set('type',index)" class="btn" :class="[params.type===index?'btn-'+dis.btn:'btn-outline-'+dis.btn]" :disabled="data.num[index]===0">
             @{{ dis.label }} <span v-if="data.num[index]>0" :class="dis.num">@{{ data.num[index] }}</span>
         </button>
     </div>
@@ -68,8 +67,7 @@
             </div>
         </x-modal>
         <!--将公告栏划分-->
-        <div class="item thead-dark thead">
-            <div class="row">
+        <div class="item thead-dark thead row">
              <!--如果是管理员页面则有1用来留给删除-->
 
 @if (isset($utype)&&$utype==="a")
@@ -88,7 +86,6 @@
                     <div class="d-none d-md-block col-md-1">更新时间</div>
                     <div class="d-none d-md-block col-md-1">类型</div>
                 </div>
-            </div>
         </div>
 
         <!--把公告显示出来-->
@@ -102,22 +99,22 @@
                 <a v-else class="btn btn-success" @click="recover(index)" style="font-size:xx-small;" ><i class="bi bi-arrow-repeat"></i></a>
             </div>
 @endif
-            <div data-bs-toggle="modal" :data-bs-index="index" 
+            <div
 @if (isset($utype)&&$utype==="a")
-class="row text-center col-11" title="点击编辑公告信息" data-bs-target="#alter" :data-bs-nid="notice.nid"
+                class="col-11 row text-center align-items-center" title="双击编辑公告信息" @dblclick="openalter(index)" 
 @else
-class="row text-center col-12" title="点击查看公告信息" data-bs-target="#info" @click="openinfo($event)"
-@endif>
+                class="col-12 row text-center align-items-center" title="双击查看公告信息" @dblclick="openinfo(index)"
+@endif      >
 
 <!--上方代码为如果是管理员则可以改变公告信息，如果是用户则只可查看-->
 <!--把公告打印显示出来-->
 
                 <div class="d-none d-sm-block col-sm-1 thead" >@{{ notice.nid }}</div>
                 <div class="col-6 col-md-5"><a class="btn btn-light text-truncate" style="width:95%;" :title="notice.ntitle" :href="'/notice/'+notice.nid" >@{{ notice.ntitle }}</a></div>
-                <div class="col-4 col-md-3 text-truncate" style="vertical-align: middle;align-self:center;" :title="notice.ndes">@{{ notice.ndes }}</div>
-                <div class="col-2 col-sm-1" style="vertical-align: middle;align-self:center;font-size:x-small;">@{{ time.send[index].status+(time.send[index].length!==null?"前":"") }}</div>
-                <div class="d-none d-md-block col-md-1" style="vertical-align: middle;align-self:center;font-size:x-small;">@{{ time.update[index].status+(time.update[index].length!==null?"前":"") }}</div>
-                <div class="d-none d-md-block col-md-1"style="vertical-align: middle;align-self:center;font-size:x-small;">
+                <div class="col-4 col-md-3 text-truncate" :title="notice.ndes">@{{ notice.ndes }}</div>
+                <div class="col-2 col-sm-1" style="font-size:x-small;">@{{ time.ntime[index].status+(time.ntime[index].length!==null?"前":"") }}</div>
+                <div class="d-none d-md-block col-md-1" style="font-size:x-small;">@{{ time.nupdate[index].status+(time.nupdate[index].length!==null?"前":"") }}</div>
+                <div class="d-none d-md-block col-md-1"style="font-size:x-small;">
                     <select v-model="notice.ntype" class="badge noexpand" :class="['bg-'+ntypes[notice.ntype]['color']]" disabled>
                         <option v-for="(ntype,index) in ntypes" :key="index" :label="ntype.label" :value="index">@{{ ntype.label }}</option>
                     </select>
@@ -135,14 +132,7 @@ class="row text-center col-12" title="点击查看公告信息" data-bs-target="
     const noticelist=Vue.createApp({
         data(){
             return{
-                timer:null,
-                time:{
-                    before:7*86400000,
-                    length:1000,
-                    send:[],
-                    update:[]
-                },
-
+                time:{ntime:[],nupdate:[]},
                 dataname:"notices",
                 paginator:{},
                 pagenum:{{ $config_notice['pagenum'] }},
@@ -159,28 +149,21 @@ class="row text-center col-12" title="点击查看公告信息" data-bs-target="
 @endif
                 ntypes:{!! json_encode($config_notice['type']) !!},
                 adis:{!! json_encode($config_notice['adis'],JSON_UNESCAPED_UNICODE) !!},
-                paramspre:{
-                    page:"1",
-                    ndes:"",
-                    ntitle:"",
-                    type:"0",
-                    nstart:"2021-01-01T00:00:00",
-                    nend:"2023-12-31T00:00:00",
-                    order:"0",
-                },
+                paramspre:{},
                 params:{
                     page:"1",
                     ndes:"",
                     ntitle:"",
-                    type:"0",
-                    nstart:"",
-                    nstart:"2021-01-01T00:00:00",
+                    type:"",
+                    nstart:"2023-01-01T00:00:00",
                     nend:"2023-12-31T00:00:00",
-                    order:"0",
+                    order:"ntime",
+                    desc:"1",
                 },
                 ordertypes:{
-                    ntime:"按发布时间排序",
-                    nupdate:"按更新时间排序",
+                    ntime:"按发布时间",
+                    nupdate:"按更新时间",
+                    nid:"按序号",
                 },
             }
         },
@@ -194,80 +177,20 @@ class="row text-center col-12" title="点击查看公告信息" data-bs-target="
         computed:{
         },
         methods:{
-            //初始化状态，显示在公告栏倒数第三栏
+            //初始化状态
             initStatus(){
-                for(i in this.notices){
-                    let notice=this.notices[i];
-                    this.time.send[i]={
-                        //发布时间距今多久
-                        length:(new Date()).getTime()-getDate(notice.ntime).getTime(),
-                        status:""
-                    };
-                    //ntime为创建公告时间
-                    //send为发布到现在过了多久
-                    //判断公告的状态
-                    this.getStatus(notice.ntime,this.time.send[i])
-                    //nupdate为修改公告时间
-                    if(notice.ntime===notice.nupdate){
-                        this.time.update[i]={
-                            length:null,
-                            status:"/"
-                        };
-                    }else{
-                        this.time.update[i]={
-                            //最近更新时间距现在多久
-                            length:(new Date()).getTime()-getDate(notice.nupdate).getTime(),
-                            status:""
-                        };
-                        //显示，多少天前修改
-                        this.getStatus(notice.nupdate,this.time.update[i])
-                    }
-                }
-                clearInterval(this.timer);
-                this.timer=setInterval(() => {
-                    this.refreshStatus()
-                }, 1000);
+                initStatus(this,"ntime");
+                initStatus(this,"nupdate");
             },
-
-            //超过before（7天）就显示日期
-            //没超过7天就显示多少天多少小时前
-            getStatus(date,send){
-                if(send.length!==null){
-                    //大于7天
-                    if(send.length>this.time.before){
-                        send.length=null;
-                        send.status=date;
-                        //小于7天显示时间
-                    }else if(send.length>=0){
-                        send.status=getSubTime(0,send.length);
-                    }else{
-                        send.length=null;
-                        send.status="未发布";
-                    }
-                }
-            },
-
-
-            //刷新时间
-            refreshStatus(){
-                for(i in this.notices){
-                    let notice=this.notices[i];
-                    if(this.time.send[i].length!==null){
-                        this.time.send[i].length+=this.time.length;
-                        this.getStatus(notice.ntime,this.time.send[i])
-                    }
-                    //更新过的公告
-                    if(notice.ntime!==notice.nupdate&&this.time.update[i].length!==null){
-                        this.time.update[i].length+=this.time.length;
-                        this.getStatus(notice.nupdate,this.time.update[i])
-                    }
-
-                }
-            },
-
             //打开公告
-            openinfo(event){
-                this.notice = Object.assign({},this.notices[event.currentTarget.getAttribute('data-bs-index')]);
+            openinfo(index){
+                $('#info').modal("show");
+                this.notice = Object.assign({},this.notices[index]);
+            },
+            openalter(index){
+                alterapp.index=index;
+                alterapp.nid=this.notices[index].nid;
+                $('#alter').modal("show");
             },
 
             //得到最近更新的时间
@@ -280,10 +203,11 @@ class="row text-center col-12" title="点击查看公告信息" data-bs-target="
                     page:"1",
                     ndes:"",
                     ntitle:"",
-                    type:"0",
-                    nstart:"2021-01-01T00:00:00",
+                    type:"",
+                    nstart:"2023-01-01T00:00:00",
                     nend:"2023-12-31T00:00:00",
-                    order:"0",
+                    order:"ntime",
+                    desc:"1",
                 };
             },
 

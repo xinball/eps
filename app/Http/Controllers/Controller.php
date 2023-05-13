@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use DB;
 use App\Models\Operation;
 use App\Models\Status;
+use App\Models\Aprocess;
 use App\Models\User;
 use App\Models\Tag;
 use App\Library\Func;
@@ -89,13 +91,38 @@ class Controller extends BaseController
             }
         }
     }
+    //检测权利够不够
+    public function checkauth($utype=null){
+        if($this->ladmin!==null){
+            if($utype==="s"){
+                if(($this->ladmin->utype==='s'||$this->ladmin->utype==='x'))
+                    return true;
+                else
+                    return false;
+            }elseif($utype==="x"){
+                if($this->ladmin->utype==='x')
+                    return true;
+                else
+                    return false;
+            }else{
+                return true;
+            }
+        }
+        return false;
+    }
     public function checkip($user,$ip){
-        $ips = Operation::distinct()->select('oinfo->ip as ip')->where('uid',$user->uid)->where('oresult->status',1)
+        $ips = Operation::distinct()->where('uid',$user->uid)->where('oresult->status',1)
         ->where(function ($query){
-            $query->orWhere('otype','ul')->orWhere('otype','al')->orWhere('otype','ui');
-        })->get();
+            $query->orWhere('otype','ul')->orWhere('otype','al');
+        })->pluck("oip")->toArray();
         foreach($ips as $item){
-            if($ip===$item['ip']){
+            if($ip===$item){
+                return true;
+            }
+        }
+        $ips=$user->allowip;
+        foreach($ips as $item){
+            if($ip===$item){
                 return true;
             }
         }
@@ -109,7 +136,6 @@ class Controller extends BaseController
         $token=$_COOKIE[$this->key]??null;
         return $token&&$token===Redis::get($this->key);
     }
-
     //管理员权限
     public function authAdmin(): bool
     {
@@ -118,8 +144,6 @@ class Controller extends BaseController
         $token=$_COOKIE[$this->akey]??null;
         return $token&&$token===Redis::get($this->akey);
     }
-
-
     public function getSnums($nums){
         $typenum=[
             'sum'=>0,
@@ -139,12 +163,13 @@ class Controller extends BaseController
     //设置用户为私密
     public function setUserPrivate(User $user){
         if(!$this->luser||$this->luser->uid!==$user->uid){
-            if (isset($user->uinfo['private'])&&$user->uinfo['private']==="1"){
+            if (isset($user->uinfo->private)&&$user->uinfo->private==="1"){
                 $user->uinfo=[
-                    'slogan'=>$user->uinfo['slogan'],
-                    'homepage'=>$user->uinfo['homepage'],
+                    'slogan'=>$user->uinfo->slogan,
+                    'homepage'=>$user->uinfo->homepage,
                 ];
             }
+            unset($user->allowip);
         }
     }
 
@@ -196,7 +221,7 @@ class Controller extends BaseController
         if($data->total()>0){
             $this->successMsg=" 我们为您找到了 ".$data->total()." 条符合条件的记录";
             if($data->hasPages()){
-                $this->successMsg.="  页面太多？底部页码处输入页数快速到达！";
+                $this->successMsg.="<br>页面太多？底部页码处输入页数快速到达！";
             }
         }
     }
@@ -207,9 +232,23 @@ class Controller extends BaseController
     public function getUser(User $user){
         $user->avatar=$this->getAvatar($user->uid);
         $user->banner=$this->getBanner($user->uid);
-        $user->uinfo=json_decode($user->uinfo,true);
+        $user->allowip=json_decode($user->allowip)??[];
+        $user->uinfo=json_decode($user->uinfo);
+        $user->uinfo->addr=$user->uinfo->addr??"";
+        $user->uinfo->lang=$user->uinfo->lang??"cn";
+        $user->uinfo->private=$user->uinfo->private??"1";
+        $user->uinfo->safe=$user->uinfo->safe??"0";
+        $user->uinfo->safemail=$user->uinfo->safemail??"0";
+        $user->uinfo->tel=$user->uinfo->tel??"";
+        $user->uinfo->slogan=$user->uinfo->slogan??"";
+        $user->uinfo->sex=$user->uinfo->sex??"2";
+        $user->uinfo->homepage=$user->uinfo->homepage??"";
+        $user->uinfo->homepagessl=$user->uinfo->homepagessl??"1";
+        $user->uinfo->qq=$user->uinfo->qq??"";
+        $user->uinfo->addr=$user->uinfo->addr??"";
+        $user->uinfo->wid=$user->uinfo->wid??"";
+        $user->uinfo->reg_ip=$user->uinfo->reg_ip??"";
     }
-
     //登录页面，输入完身份证或者邮箱后，点击别处会刷新，如果该用户有自己头像就显示自己头像，没有就显示默认头像
     public function getAvatar($uid=null){
         $basicConfig=Redis::hGetAll("basic");
@@ -232,8 +271,6 @@ class Controller extends BaseController
         }
         return url('/bootstrap/icon/building.svg');
     }
-
-
     //有则用自己，没有用默认
     public function getBanner($uid=null){
         $basicConfig=Redis::hGetAll("basic");
@@ -246,7 +283,6 @@ class Controller extends BaseController
         }
         return $default."?".filectime(public_path($default));
     }
-
     //得到指定站点
     public function getStation($station){
         if($station===null){
@@ -255,14 +291,23 @@ class Controller extends BaseController
         $station->img=$this->getSAvatar($station->sid);
         $station->stime=json_decode($station->stime,true);
         $station->sinfo=json_decode($station->sinfo);
-        if(!isset($station->sinfo->p)){
-            $station->sinfo->p=false;
+        if(!isset($station->sinfo->a)){
+            $station->sinfo->p="0";
+        }
+        if(!isset($station->sinfo->approvetime)){
+            $station->sinfo->approvetime="0";
+        }
+        if(!isset($station->sinfo->a)){
+            $station->sinfo->a="0";
         }
         if(!isset($station->sinfo->r)){
-            $station->sinfo->r=false;
+            $station->sinfo->r="0";
         }
         if(!isset($station->sinfo->v)){
-            $station->sinfo->v=false;
+            $station->sinfo->v="0";
+        }
+        if(!isset($station->sinfo->anum)){
+            $station->sinfo->anum=0;
         }
         if(!isset($station->sinfo->pnum)){
             $station->sinfo->pnum=0;
@@ -280,7 +325,7 @@ class Controller extends BaseController
         $appoint->ainfo=json_decode($appoint->ainfo);
         if(isset($appoint->aprocesses)){
             foreach($appoint->aprocesses as $aprocess){
-                getAprocess($aprocess);
+                $this->getAprocess($aprocess);
             }
         }
         return $appoint;
@@ -288,6 +333,48 @@ class Controller extends BaseController
     public function getAprocess($aprocess){
         $aprocess->apinfo=json_decode($aprocess->apinfo);
         return $aprocess;
+    }
+    public function checkstationauth($station,$uid){//站点权限
+        return $this->checkstationinfoauth($station->region_id,$station->city_id,$station->state_id,$uid,$station->sid);
+    }
+    public function checkstationaddr($region_id,$city_id,$state_id){//地址有效性
+        if($region_id!==null){
+            return DB::table("regions")->where("id",$region_id)->where("city_id",$city_id)->exists()&&DB::table("cities")->where("id",$city_id)->where("state_id",$state_id)->exists();
+        }elseif($city_id!==null){
+            return DB::table("cities")->where("id",$city_id)->where("state_id",$state_id)->exists();
+        }
+        return false;
+    }
+    public function checkaddr($con_id,$coun_id=null,$state_id=null,$city_id=null,$region_id=null){//地址有效性
+        $conflag=DB::table("continents")->where("id",$con_id)->exists();
+        $counflag=DB::table("countries")->where("id",$coun_id)->where("continent_id",$con_id)->exists();
+        $stateflag=DB::table("states")->where("id",$state_id)->where("country_id",$coun_id)->exists();
+        $cityflag=DB::table("cities")->where("id",$city_id)->where("state_id",$state_id)->exists();
+        $regionflag=DB::table("regions")->where("id",$region_id)->where("city_id",$city_id)->exists();
+        if($coun_id===null){
+            return $conflag;
+        }elseif($state_id===null){
+            return $conflag&&$counflag;
+        }elseif($city_id===null){
+            return $conflag&&$counflag&&$stateflag;
+        }elseif($region_id===null){
+            return $conflag&&$counflag&&$stateflag&&$cityflag;
+        }else{
+            return $conflag&&$counflag&&$stateflag&&$cityflag&&$regionflag;
+        }
+    }
+    public function checkstationinfoauth($region_id,$city_id,$state_id,$uid,$sid=null){//站点权限
+        if($region_id!==null&&DB::table("admin_area")->where("type","r")->where("region_id",$region_id)->where("uid",$uid)->exists())
+            return 1;
+        elseif($city_id!==null&&DB::table("admin_area")->where("type","c")->where("city_id",$city_id)->where("uid",$uid)->exists())
+            return 2;
+        elseif($state_id!==null&&DB::table("admin_area")->where("type","s")->where("state_id",$state_id)->where("uid",$uid)->exists())
+            return 3;
+        elseif($sid!==null&&DB::table('admin_station')->where('sid','=',$sid)->where('uid','=',$uid)->exists())
+            return 4;
+        elseif($this->checkauth('x'))
+            return 5;
+        return false;
     }
     private function initConfig(){
         //配置
@@ -414,22 +501,25 @@ class Controller extends BaseController
             }',
             'statekey'=>'{"total":["n","r","s","f","d"],"all":["n","r","s","f","d"]}',
         ];
-
-        $this->config_location=count(Redis::hGetAll('location'))>0?Redis::hGetAll('location'):[
+        $this->config_operation=count(Redis::hGetAll('operation'))>0?Redis::hGetAll('operation'):[
             'listnum'=>20,
             'pagenum'=>3,
-            'type'=>'{
-                "o":"开放",
-                "c":"关闭",
+            'otype'=>'{
+                "ul":"创建",
+                "s":"提交",
+                "r":"拒绝",
+                "f":"完成",
                 "d":"删除"
             }',
         ];
 
+        $this->config_basic['bans']=json_decode($this->config_basic['bans'],true);
         view()->share('config_basic',$this->config_basic);
 
         view()->share('config_userpre',$this->config_user);
         $this->config_user['typekey']=json_decode($this->config_user['typekey'],true);
         $this->config_user['idnotype']=json_decode($this->config_user['idnotype'],true);
+        $this->config_user['adis']=json_decode($this->config_user['adis'],true);
         view()->share('config_user',$this->config_user);
 
         view()->share('config_noticepre',$this->config_notice);
@@ -441,6 +531,8 @@ class Controller extends BaseController
         view()->share('config_stationpre',$this->config_station);
         $this->config_station['typekey']=json_decode($this->config_station['typekey'],true);
         $this->config_station['type']=json_decode($this->config_station['type'],true);
+        $this->config_station['typer']=json_decode($this->config_station['typer'],true);
+        $this->config_station['typep']=json_decode($this->config_station['typep'],true);
         $this->config_station['state']=json_decode($this->config_station['state'],true);
         $this->config_station['stimeconfigs']=json_decode($this->config_station['stimeconfigs'],true);
         view()->share('config_station',$this->config_station);
@@ -448,34 +540,62 @@ class Controller extends BaseController
         view()->share('config_appointpre',$this->config_appoint);
         $this->config_appoint['statekey']=json_decode($this->config_appoint['statekey'],true);
         $this->config_appoint['state']=json_decode($this->config_appoint['state'],true);
+        $this->config_appoint['processtype']=json_decode($this->config_appoint['processtype'],true);
         view()->share('config_appoint',$this->config_appoint);
 
-        view()->share('config_locationpre',$this->config_location);
-        view()->share('config_location',$this->config_location);
+        view()->share('config_operationpre',$this->config_operation);
+        $this->config_operation['type']=json_decode($this->config_operation['type'],true);
+        $this->config_operation['status']=json_decode($this->config_operation['status'],true);
+        view()->share('config_operation',$this->config_operation);
 
         view()->share('statement',Func::getStatement());
         view()->share('ip',Func::getIp());
         
     }
     public function insertOperation($request,$uid,$type,$result=null){
+        $this->getResult();
         $operation = new Operation();
         $operation->uid=$uid;
         $operation->otype=$type;
         if($result===null){
             $result=$this->result->toJson();
         }
-        $operation->orequest=json_encode($request->all(),JSON_UNESCAPED_UNICODE);
+        $operation->oip=Func::getIp();
+        if($request!==null){
+            $operation->orequest=json_encode($request->all(),JSON_UNESCAPED_UNICODE);
+        }else{
+            $operation->orequest=json_encode([],JSON_UNESCAPED_UNICODE);
+        }
         $operation->oresult=$result;
         $agent = new Agent();
         $operation->oinfo=json_encode([
-            'ip' => Func::getIp(),
             'browser' => $agent->browser(),
             'browserv' => $agent->version($agent->browser()),
             'platform' => $agent->platform(),
             'platformv' => $agent->version($agent->platform()),
             'device' => $agent->device(),
-            'languages' => $agent->languages(),
+            'isDesktop' => $agent->isDesktop(),
+            'isPhone' => $agent->isPhone(),
+            'isTablet' => $agent->isTablet(),
         ],JSON_UNESCAPED_UNICODE);
         $operation->save();
+    }
+    public function checkOperation($uid){
+        $operation=Operation::where('uid',$uid)->orderByDesc("oid")->first();
+        if($operation===null||time()-strtotime($operation->otime)>$this->config_basic['opttl']){
+            return true;
+        }
+        $this->infoMsg="两次操作间隔时间直接不能少于".$this->config_basic['opttl']."s！";
+        $this->getResult();
+        return false;
+    }
+    public function checkAprocess($uid){
+        $aprocess=Aprocess::where('uid',$uid)->orderByDesc("apid")->first();
+        if($aprocess===null||time()-strtotime($aprocess->aptime)>$this->config_basic['apttl']){
+            return true;
+        }
+        $this->infoMsg="两次预约处理操作间隔时间直接不能少于".$this->config_basic['apttl']."s！";
+        $this->getResult();
+        return false;
     }
 }

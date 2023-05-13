@@ -8,7 +8,7 @@
 @section('main')
 <div id="alterapp" class="col-sm-12 col-lg-10 col-xxl-8 align-self-auto justify-content-center" style="margin: auto;">
     <form class="needs-validation" novalidate>
-        <h4 class="mb-3">基本</h4>
+        <h1 class="mb-3">基本</h1>
         <div class="row g-3">
             <div class="col-md-6">
                 <label for="name" class="form-label">防疫系统名称</label>
@@ -23,6 +23,21 @@
                 </select>
             </div>
             <div class="col-md-6">
+                <label for="iplimit" class="form-label">每IP注册用户上限</label>
+                <input type="number" class="form-control" id="iplimit" v-model="basic.iplimit" placeholder="3" required>
+            </div>
+            <div class="col-md-6">
+                <label for="opttl" class="form-label">普通用户处理请求间隔时间</label>
+                <input type="number" class="form-control" id="opttl" v-model="basic.opttl" placeholder="3" required>
+            </div>
+            <div class="col-md-6">
+                <label for="register" class="form-label">新用户注册</label>
+                <select class="form-select" v-model="basic.register" id="register" required>
+                    <option value="1">允许注册</option>
+                    <option value="0">关闭注册</option>
+                </select>
+            </div>
+            <div class="col-md-6">
                 <label for="useravatar" class="form-label">用户头像路径</label>
                 <input type="text" class="form-control" id="useravatar" v-model="basic.useravatar" placeholder="/img/avatar/" required>
             </div>
@@ -31,8 +46,8 @@
                 <input type="text" class="form-control" id="userbanner" v-model="basic.userbanner" placeholder="/img/banner/" required>
             </div>
             <div class="col-md-6">
-                <label for="useravatar" class="form-label">比赛图片路径</label>
-                <input type="text" class="form-control" id="contestavatar" v-model="basic.contestavatar" placeholder="/img/contest/" required>
+                <label for="useravatar" class="form-label">站点图片路径</label>
+                <input type="text" class="form-control" id="stationavatar" v-model="basic.stationavatar" placeholder="/img/station/" required>
             </div>
             <div class="col-md-6">
                 <label for="defaultavatar" class="form-label">用户默认头像</label>
@@ -50,11 +65,36 @@
                 <label for="bannerwidth" class="form-label">用户背景横幅宽度</label>
                 <input type="number" class="form-control" id="bannerwidth" v-model="basic.bannerwidth" placeholder="400" required>
             </div>
+            <div class="col-md-6">
+                <label for="stationwidth" class="form-label">站点图片宽度</label>
+                <input type="number" class="form-control" id="stationwidth" v-model="basic.stationwidth" placeholder="64" required>
+            </div>
+            <div class="col-12">
+                <label for="basiccopyright" class="form-label">底部信息</label>
+                <textarea class="form-control" id="basiccopyright" rows="5" style="resize:none;"  v-model="basic.copyright" required></textarea>
+            </div>
+        </div><br/>
+        <h5 class="mb-3">封禁IP</h5>
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="input-group justify-content-center">
+                    <a @click="addban" class="btn btn-outline-info"><i class="bi bi-plus-lg"></i> 添加</a>
+                    <a @click="clear" class="btn btn-outline-danger"><i class="bi bi-arrow-clockwise"></i> 清空</a>
+                    <a @click="alterban" class="btn btn-outline-success"><i class="bi bi-check-lg"></i> 保存</a>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-4" v-for="(ban,index) in basic.bans">
+                <div class="input-group">
+                    <label class="input-group-text" :for="'ban'+index">@{{ index+1 }}</label>
+                    <input :id="'ban'+index" class="form-control" v-model="basic.bans[index]" placeholder="0.0.0.0"/>
+                    <a class="btn btn-outline-danger" @click="delban(index)"><i class="bi bi-x-lg"></i> 删除</a>
+                </div>
+            </div>
         </div>
         <hr class="my-4">
         <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter('basic')">修改基本配置</button>
         <hr class="my-4">
-        <h4 class="mb-3">用户</h4>
+        <h1 class="mb-3">用户</h1>
         <div class="row g-3">
             <div class="col-md-6">
                 <label for="userloginttl" class="form-label">用户登录生存时间</label>
@@ -110,7 +150,7 @@
         <hr class="my-4">
         <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter('user')">修改用户配置</button>
         <hr class="my-4">
-        <h4 class="mb-3">通知</h4>
+        <h1 class="mb-3">通知</h1>
         <div class="row g-3">
             <div class="col-md-6">
                 <label for="noticelistnum" class="form-label">每页数量</label>
@@ -136,61 +176,57 @@
         <hr class="my-4">
         <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter('notice')">修改通知配置</button>
         <hr class="my-4">
-        <h4 class="mb-3">问题</h4>
+        <h1 class="mb-3">站点</h1>
         <div class="row g-3">
             <div class="col-md-6">
-                <label for="problemlistnum" class="form-label">每页数量</label>
-                <input type="number" class="form-control" id="problemlistnum" v-model="problem.listnum" placeholder="20" required>
+                <label for="stationlistnum" class="form-label">每页数量</label>
+                <input type="number" class="form-control" id="stationlistnum" v-model="station.listnum" placeholder="20" required>
             </div>
             <div class="col-md-6">
-                <label for="problempagenum" class="form-label">显示页面数量/2</label>
-                <input type="number" class="form-control" id="problempagenum" v-model="problem.pagenum" placeholder="3" required>
+                <label for="stationpagenum" class="form-label">显示页面数量/2</label>
+                <input type="number" class="form-control" id="stationpagenum" v-model="station.pagenum" placeholder="3" required>
             </div>
             <div class="col-md-6">
-                <label for="problemetype" class="form-label">类型</label>
-                <textarea class="form-control" id="problemtype" rows="5" style="resize:none;"  v-model="problem.type" required></textarea>
+                <label for="stationtype" class="form-label">类型</label>
+                <textarea class="form-control" id="stationtype" rows="5" style="resize:none;"  v-model="station.type" required></textarea>
             </div>
             <div class="col-md-6">
-                <label for="problemtypekey" class="form-label">类型分类</label>
-                <textarea class="form-control" id="problemtypekey" rows="5" style="resize:none;"  v-model="problem.typekey" required></textarea>
-            </div>
-            {{-- <div class="col-12">
-                <label for="problemadis" class="form-label">管理 类型显示效果</label>
-                <textarea class="form-control" id="problemadis" rows="5" style="resize:none;"  v-model="problem.adis" required></textarea>
-            </div> --}}
-        </div>
-        <hr class="my-4">
-        <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter('problem')">修改问题配置</button>
-        <hr class="my-4">
-        <h4 class="mb-3">比赛</h4>
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label for="contestlistnum" class="form-label">每页数量</label>
-                <input type="number" class="form-control" id="contestlistnum" v-model="contest.listnum" placeholder="20" required>
+                <label for="stationtypekey" class="form-label">类型分类</label>
+                <textarea class="form-control" id="stationtypekey" rows="5" style="resize:none;"  v-model="station.typekey" required></textarea>
             </div>
             <div class="col-md-6">
-                <label for="contestpagenum" class="form-label">显示页面数量/2</label>
-                <input type="number" class="form-control" id="contestpagenum" v-model="contest.pagenum" placeholder="3" required>
+                <label for="stationstate" class="form-label">状态</label>
+                <textarea class="form-control" id="stationstate" rows="5" style="resize:none;"  v-model="station.state" required></textarea>
             </div>
             <div class="col-md-6">
-                <label for="contesttype" class="form-label">类型</label>
-                <textarea class="form-control" id="contesttype" rows="5" style="resize:none;"  v-model="contest.type" required></textarea>
-            </div>
-            <div class="col-md-6">
-                <label for="contesttypekey" class="form-label">类型分类</label>
-                <textarea class="form-control" id="contesttypekey" rows="5" style="resize:none;"  v-model="contest.typekey" required></textarea>
-            </div>
-            <div class="col-12">
-                <label for="contestudis" class="form-label">用户管理 类型显示效果</label>
-                <textarea class="form-control" id="contestudis" rows="5" style="resize:none;"  v-model="contest.udis" required></textarea>
-            </div>
-            <div class="col-12">
-                <label for="contestadis" class="form-label">管理 类型显示效果</label>
-                <textarea class="form-control" id="contestadis" rows="5" style="resize:none;"  v-model="contest.adis" required></textarea>
+                <label for="stationstimeconfigs" class="form-label">开放时间</label>
+                <textarea class="form-control" id="stationstimeconfigs" rows="5" style="resize:none;"  v-model="station.stimeconfigs" required></textarea>
             </div>
         </div>
         <hr class="my-4">
-        <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter('contest')">修改比赛配置</button>
+        <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter('station')">修改站点配置</button>
+        <hr class="my-4">
+        <h1 class="mb-3">操作</h1>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="operationlistnum" class="form-label">每页数量</label>
+                <input type="number" class="form-control" id="operationlistnum" v-model="operation.listnum" placeholder="20" required>
+            </div>
+            <div class="col-md-6">
+                <label for="operationpagenum" class="form-label">显示页面数量/2</label>
+                <input type="number" class="form-control" id="operationpagenum" v-model="operation.pagenum" placeholder="3" required>
+            </div>
+            <div class="col-md-6">
+                <label for="operationtype" class="form-label">类型</label>
+                <textarea class="form-control" id="operationtype" rows="5" style="resize:none;"  v-model="operation.type" required></textarea>
+            </div>
+            <div class="col-md-6">
+                <label for="operationstatus" class="form-label">结果状态</label>
+                <textarea class="form-control" id="operationstatus" rows="5" style="resize:none;"  v-model="operation.status" required></textarea>
+            </div>
+        </div>
+        <hr class="my-4">
+        <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter('operation')">修改操作配置</button>
     </form>
 </div>
 
@@ -203,59 +239,35 @@ const alterapp=Vue.createApp({
                 basic:{!! json_encode($config_basic) !!},
                 user:{!! json_encode($config_user) !!},
                 notice:{!! json_encode($config_noticepre) !!},
-                problem:{!! json_encode($config_problempre) !!},
-                contest:{!! json_encode($config_contestpre) !!},
-
-                adis:isJSON({!! json_encode($config_status['adis'],JSON_UNESCAPED_UNICODE) !!},true),
-                sdisplay:false,
-                adisplay:false,
-                udisplay:false,
-                info:{
-                    snums:{sum:0},
-                    sysinfo:{
-                        err:null,
-                        data:{
-                            cpu:0,
-                            memory:0,
-                            cpu_core:0,
-                        },
-                    }
-                }
+                appoint:{!! json_encode($config_appointpre) !!},
+                station:{!! json_encode($config_stationpre) !!},
+                operation:{!! json_encode($config_operationpre) !!},
             }
         },
         mounted(){
-            this.refreshStatus();
-            clearInterval(this.timer);
-            this.timer=setInterval(() => {
-                this.refreshStatus()
-            }, 5000);
         },
         methods:{
-            alter:function (config){
-                let data=this[config];
-                data._token="{{csrf_token()}}";
-                getData("{!! config('var.aal') !!}"+config,null,"#msg",this[config]);
+            clear(){
+                this.basic.bans.length=0;
             },
-            refreshStatus(){
-                let that=this;
-                getData("{!! config('var.jp') !!}",function(json){
-                    if(json.status===1){
-                        that.info=json.data.info;
-                        if(that.info.snums.sum!=='0'&&that.info.snums.sum!==0){
-                            that.sdisplay=true;
-                        }
-                        if(that.info.asnums.sum!=='0'&&that.info.asnums.sum!==0){
-                            that.adisplay=true;
-                        }
-                        if(that.info.usnums.sum!=='0'&&that.info.usnums.sum!==0){
-                            that.udisplay=true;
-                        }
+            delban(index){
+                this.basic.bans.splice(index,1);
+            },
+            addban(index){
+                this.basic.bans.push("");
+            },
+            alter(config){
+                let data=Object.assign({},this[config]);
+                for(let i in data){
+                    if(typeof data[i] === 'object'){
+                        data[i]=JSON.stringify(data[i]);
                     }
-                },"#msg",data=null,jump=true,false);
+                }
+                data._token="{{csrf_token()}}";
+                getData("{!! config('var.aal') !!}"+config,null,"#msg",data);
             },
         },
     }).mount("#alterapp");
-
 
 </script>
 @endsection

@@ -136,6 +136,14 @@ $(function (){
             }, false)
         })
 });
+
+function copy(obj){
+    if(obj.value!==""){
+        $(obj).select();
+        document.execCommand('copy');
+        echoMsg('#msg',{status:1,message:"复制成功！"});
+    }
+}
 //密码小眼睛
 function changePwdtype(obj,id){
     if($("#"+id).attr("type")==="password"){
@@ -167,28 +175,31 @@ function getSubTime(start,end){
 
 //判断是否是json
 function isJSON(str,isarray=true){
-    if(typeof str == 'string'){
+    if(typeof str === 'string'){
         try{
             let obj = JSON.parse(str);
-            if(typeof obj == 'object' && obj){
+            if(typeof obj === 'object' && obj){
                 return obj;
             }else{
-                if(isarray){
-                    return [];
-                }
-                return {};
+                return null;
+                // if(isarray){
+                //     return [];
+                // }
+                // return {};
             }
         }catch(e){
-            if(isarray){
-                return [];
-            }
-            return {};
+            return null;
+            // if(isarray){
+            //     return [];
+            // }
+            // return {};
         }
     }else{
-        if(isarray){
-            return [];
-        }
-        return {};
+        return null;
+        // if(isarray){
+        //     return [];
+        // }
+        // return {};
     }
 }
 
@@ -255,7 +266,9 @@ function initmodal(id) {
     // msg.style="z-index:2000;position:absolute;width: 100%;top:0;";
     // modal.querySelector('.modal-body').appendChild(msg);
 }
-
+function getDayTime(time){
+    return (new Date(new Date().toLocaleDateString()+' '+time).getTime()-new Date(new Date().toLocaleDateString()).getTime());
+}
 //获取日期
 function getDate(datestr){
     return new Date(datestr.replace(/-/g,"/"));
@@ -284,6 +297,12 @@ function url2json(url){
             if(item.includes('=')){
                 tem=item.split('=');
                 params[tem[0]]=decodeURI('1' in tem ? tem[1]:null);
+                if(params[tem[0]]!==null){
+                    const json = isJSON(params[tem[0]]);
+                    if(json!==null){
+                        params[tem[0]]=json;
+                    }
+                }
             }
         }
     }
@@ -300,91 +319,179 @@ function setParams(params){
 function json2url(json){
     let url="";
     for(i in json){
-        url+=i+"="+encodeURI(json[i])+"&";
+        if(typeof json[i] === 'object'){
+            url+=i+"="+encodeURI(JSON.stringify(json[i]))+"&";
+        }else{
+            url+=i+"="+encodeURI(json[i])+"&";
+        }
     }
     if(url.length>0)
         url[url.length]='';
     return url;
 }
+function initStatus(app,timename,before=7,length=1){
+    if(app.time[timename+'timer']!==undefined){
+        clearInterval(app.time[timename+'timer']);
+    }
+    app.time[timename+'before']=before*86400000;
+    app.time[timename+'length']=length*1000;
+    app.time[timename+'timer']=null;
+    app.time[timename]=[];
+    for(i in app[app.dataname]){
+        const item=app[app.dataname][i];
+        app.time[timename][i]={
+            //操作时间距今多久
+            length:(new Date()).getTime()-getDate(item[timename]).getTime(),
+            status:""
+        };
+        getStatus(item[timename],app.time[timename][i],app.time[timename+'before'])
+    }
+    app.time[timename+'timer']=setInterval(() => {
+        refreshStatus(app,timename);
+    }, app.time[timename+'length']);
+}
+//超过before（7天）就显示日期
+//没超过7天就显示多少天多少小时前
+function getStatus(date,send,before){
+    if(send.length!==null){
+        //大于7天
+        if(send.length>before){
+            send.length=null;
+            send.status=date;
+        }else if(send.length>=0){
+            //小于7天显示时间
+            send.status=getSubTime(0,send.length);
+        }else{
+            send.length=null;
+            send.status="未生效";
+        }
+    }
+}
+function refreshStatus(app,timename){
+    for(i in app[app.dataname]){
+        const item=app[app.dataname][i];
+        if(app.time[timename][i].length!==null){
+            app.time[timename][i].length+=app.time[timename+'length'];
+            getStatus(item[timename],app.time[timename][i],app.time[timename+'before']);
+        }
+    }
+}
+
 //分页函数
 function setpaginator(app){
     app.paginator.pre=app.paginator.current_page>app.pagenum-1?app.paginator.current_page-app.pagenum+1:1;
     app.paginator.next=app.paginator.pre+app.pagenum*2-2<app.paginator.last_page?app.paginator.pre+app.pagenum*2-2:app.paginator.last_page;
-    // if(app.paginator.pre-app.pagenum>0){
-    //     app.paginator.pre_url=app.paginator.first_page_url.replace(/page=1/,"page="+(app.paginator.pre-app.pagenum));
-    // }
-    // if(app.paginator.next+app.pagenum<app.paginator.last_page){
-    //     app.paginator.next_url=app.paginator.first_page_url.replace(/page=1/,"page="+(app.paginator.next+app.pagenum));
-    // }
-    // while(i<=app.paginator.next){
-    //     app.paginator.urllist.push({url:app.paginator.first_page_url.replace(/page=1/,"page="+i),page:i});
-    //     i++;
-    // }
+    
     app.paginator.pagelist=[];
     let i=app.paginator.pre;
     while(i<=app.paginator.next){
         app.paginator.pagelist.push(i);
         i++;
     }
-    if(app.dataname==='notices'){
-        app.initStatus();
-    }
 }
-function initaddress(app,sla,params){
-    const city_id=params.city_id;
-    const region_id=params.region_id;
-    getData(sla+"?type=s&id=44",function(json){
-        app.state_ids=json;
-    });
-    app.getRegions=function(region_id=""){
+function initaddress(app,sla,params,counflag=0){
+    const coun_id=params.coun_id===null?"":params.coun_id;
+    const state_id=params.state_id===null?"":params.state_id;
+    const city_id=params.city_id===null?"":params.city_id;
+    const region_id=params.region_id===null?"":params.region_id;
+    app.getStreet=function(e=0){
+        if(e===1){
+            search(app,app.region_ids,"district",params.region_id);
+        }
+    };
+    app.getRegions=function(region_id="",e=0){
         getData(sla+"?type=r&id="+params.city_id,function(json){
             app.region_ids=json;
-            if(region_id!==""){
-                params.region_id=region_id;
-            }else{
-                params.region_id="";
+            params.region_id=region_id;
+            app.getStreet(e);
+            if(e===1){
+                search(app,app.city_ids,"city",params.city_id);
             }
         });
     };
-    app.getCities=function(city_id="",region_id=""){
+    app.getCities=function(city_id="",region_id="",e=0){
         getData(sla+"?type=c&id="+params.state_id,function(json){
             app.city_ids=json;
+            params.city_id=city_id;
             if(city_id===""){
-                params.city_id="";
                 app.region_ids=[];
             }else{
-                params.city_id=city_id;
-                if(region_id!==""){
-                    app.getRegions(region_id);
-                }else{
-                    params.region_id="";
-                }
+                app.getRegions(region_id,e);
+            }
+            if(e===1){
+                search(app,app.state_ids,"province",params.state_id);
             }
         });
     };
-    app.getCities(city_id,region_id);
+    if(counflag){
+        app.getStates=function(state_id="",city_id="",region_id=""){
+            getData(sla+"?type=s&id="+params.coun_id,function(json){
+                app.state_ids=json;
+                params.state_id=state_id;
+                if(state_id===""){
+                    app.city_ids=[];
+                }else{
+                    app.getCities(city_id,region_id);
+                }
+            });
+        };
+        app.getCountries=function(coun_id="",state_id="",city_id="",region_id=""){
+            getData(sla+"?type=g&id="+params.con_id,function(json){
+                app.coun_ids=json;
+                params.coun_id=coun_id;
+                if(coun_id===""){
+                    app.states_ids=[];
+                }else{
+                    app.getStates(state_id,city_id,region_id);
+                }
+            });
+        };
+        getData(sla+"?type=z",function(json){
+            app.con_ids=json;
+            app.getCountries(coun_id,state_id,city_id,region_id);
+        });
+    }else{
+        getData(sla+"?type=s&id=44",function(json){
+            app.state_ids=json;
+            app.getCities(city_id,region_id,1);
+        });
+    }
 }
 
 //初始化标页码
 function initpaginator(app){
     setParams(app.params);//初始化参数
+    app.paramspre=Object.assign({},app.params);
     app.getData=function(params=app.params){
         let url='?'+json2url(params);
         history.replaceState(null,null,window.location.href.replace(/\?.*/,'')+url);
+        if(params.order !== undefined && app.ordertypes[params.order] !== undefined){
+            echoMsg("#msg",{status:2,message:"查询方式："+app.ordertypes[params.order]+"-"+(params.desc==='0'?"正序":"倒序")});
+        }
         getData(app.url+url,function(json){
-            app.paramspre=Object.assign({},params);
             if(json.data!==null){
-                // if(app.dataname==='stations'){
-                //     json.data.stations.data.forEach(station=>{
-                //         station.sinfo=isJSON(station.sinfo);
-                //         station.service=(station.sinfo.p===1?'<span class="badge bg-info">核酸</span>':'')+(station.sinfo.r===1?'<span class="badge bg-warning">抗原</span>':'')+(station.sinfo.v===1?'<span class="badge bg-success">疫苗</span>':'');
-                //     });
-                // }
                 app.data=json.data;
                 app.paginator=json.data[app.dataname];
                 app[app.dataname]=json.data[app.dataname].data;
                 setpaginator(app);
+                if(app.dataname==='operations'){
+                    for(let i in app[app.dataname]){
+                        app[app.dataname][i].orequest=isJSON(app[app.dataname][i].orequest);
+                        app[app.dataname][i].oinfo=isJSON(app[app.dataname][i].oinfo);
+                        app[app.dataname][i].oresult=isJSON(app[app.dataname][i].oresult);
+                    }
+                }
                 if(app.dataname==='stations'){
+                    for(let i of app.markers){
+                        clearMarker(i);
+                    }
+                    app.markers.length=0;
+                    for(let i of app[app.dataname]){
+                        app.markers.push(addMarker(i,app.mapObj));
+                    }
+                }
+                if(app.dataname==='notices'||app.dataname==='operations'){
+                    app.initStatus();
                 }
             }else{
                 app[app.dataname]=[];
@@ -392,24 +499,84 @@ function initpaginator(app){
         },"#msg");
     };
     app.setpage=function (page) {
+        app.paramspre=Object.assign({},app.params);
         app.paramspre.page=page;
         app.getData(app.paramspre);
     };
-    app.orderby=function (by) {
-        app.params.order=by;
+    app.set=function(key,value=""){
+        if(key==='desc'){
+            app.params.desc=(app.params.desc==='0'?'1':'0');
+        }else if(key==='order'){
+            if(app.params.order===value){
+                app.params.desc=(app.params.desc==='0'?'1':'0');
+            }else{
+                app.params[key]=value;
+            }
+        }else{
+            app.params[key]=value;
+        }
         app.getData();
-    };
-    app.setdesc=function () {
-        app.params.desc=(app.params.desc==='0'?'1':'0');
+    }
+    app.setarr=function(key,value=""){
+        if(app.params[key].includes(value)){
+            const index = app.params[key].indexOf(value);
+            app.params[key].splice(index,1);
+        }else{
+            app.params[key].push(value);
+        }
         app.getData();
-    };
-    app.settype=function (type) {
-        app.params.type=type;
-        app.getData();
-    };
+    }
 }
 
-
+function getStation(station){
+    if(!('approvetime' in station.sinfo)){
+        station.sinfo.approvetime=false;
+    }else{
+        station.sinfo.approvetime=station.sinfo.approvetime==='1';
+    }
+    if(!('a' in station.sinfo)){
+        station.sinfo.a=false;
+    }else{
+        station.sinfo.a=station.sinfo.a==='1';
+    }
+    if(!('p' in station.sinfo)){
+        station.sinfo.p=false;
+    }else{
+        station.sinfo.p=station.sinfo.p==='1';
+    }
+    if(!('r' in station.sinfo)){
+        station.sinfo.r=false;
+    }else{
+        station.sinfo.r=station.sinfo.r==='1';
+    }
+    if(!('v' in station.sinfo)){
+        station.sinfo.v=false;
+    }else{
+        station.sinfo.v=station.sinfo.v==='1';
+    }
+    if(!('des' in station.sinfo)){
+        station.sinfo.des="";
+    }
+    if(!('addr' in station.sinfo)){
+        station.sinfo.addr="";
+    }
+    if(!('time' in station.sinfo)){
+        station.sinfo.time="";
+    }
+    if(!('anum' in station.sinfo)){
+        station.sinfo.anum=0;
+    }
+    if(!('pnum' in station.sinfo)){
+        station.sinfo.pnum=0;
+    }
+    if(!('rnum' in station.sinfo)){
+        station.sinfo.rnum=0;
+    }
+    if(!('vnum' in station.sinfo)){
+        station.sinfo.vnum=0;
+    }
+    return station;
+}
 function filterTypes(types,typekey){
     for(index in types)
         if(!typekey.includes(index))
@@ -458,13 +625,18 @@ function getData(url,f=null,echo=false,data=null,jump=true,load=true,time=5000){
             if(xhr.status == 419){
                 result.message="页面过期，请刷新后重试！";
                 echoMsg(echo,result,time,jump);
+                stopload();
             }else if(xhr.status == 404){
-                result.message="请求链接失效！";
+                result.message="请求链接无效！";
                 echoMsg(echo,result,time,jump);
+                stopload();
             }else{
                 result.message="服务器错误，请稍后重试！";
                 echoMsg(echo,result,time,jump);
+                stopload();
             }
+            if(f!==null)
+                f(result);
         });
     }else{
         $.post(url,data,function(result){
@@ -484,16 +656,95 @@ function getData(url,f=null,echo=false,data=null,jump=true,load=true,time=5000){
             if(xhr.status == 419){
                 result.message="页面过期，请刷新后重试！";
                 echoMsg(echo,result,time,jump);
+                stopload();
             }else if(xhr.status == 404){
                 result.message="请求链接失效！";
                 echoMsg(echo,result,time,jump);
+                stopload();
             }else{
                 result.message="服务器错误，请稍后重试！";
                 echoMsg(echo,result,time,jump);
+                stopload();
             }
+            if(f!==null)
+                f(result);
         });
     }
     if(load)
         failload();
 }
 
+
+function getPolygon(app,data) {
+    if(data===undefined||data.boundaries===undefined)
+        return;
+    var bounds = data.boundaries;
+    if (bounds) {
+        for (var i = 0, l = bounds.length; i < l; i++) {
+            var polygon = new AMap.Polygon({
+                map: app.mapObj,
+                strokeWeight: 1,
+                strokeColor: '#0091ea',
+                fillColor: '#80d8ff',
+                fillOpacity: 0.2,
+                path: bounds[i]
+            });
+            app.polygons.push(polygon);
+        }
+        app.mapObj.setFitView();//地图自适应
+    }
+}
+function search(app,datalist,level,id) {
+    if(datalist===null||app.mapObj===undefined)
+        return;
+    //清除地图上所有覆盖物
+    for (var i = 0, l = app.polygons.length; i < l; i++) {
+        app.polygons[i].setMap(null);
+    }
+    let adcode = null;
+    for(let i of datalist){
+        if(i.id==id){
+            adcode=i.code;
+            break;
+        }
+    }
+    if(adcode===null)
+        return;
+    app.district.setLevel(level); //行政区级别
+    app.district.setExtensions('all');
+    app.district.search(adcode, function(status, result) {
+        if(status === 'complete'){
+            getPolygon(app,result.districtList[0]);
+        }
+    });
+}
+function setCenter(obj){
+    map.setCenter(obj[obj.options.selectedIndex].center)
+}
+function addMarker(station,map) {
+    let marker = new AMap.Marker({
+        position: [station.slng, station.slat],
+        offset: new AMap.Pixel(-13, -30)
+    });
+    let markerContent = document.createElement("div");
+    let markerImg = document.createElement("img");
+    markerImg.className = "markerlnglat";
+    markerImg.src = "//eps.yono.top/bootstrap/icon/geo-fill.svg";
+    markerImg.setAttribute('width', '25px');
+    markerImg.setAttribute('height', '34px');
+    let markerSpan = document.createElement("span");
+    markerSpan.className = 'card';
+    markerSpan.style = 'width: max-content';
+    markerSpan.innerHTML = station.sid+" "+station.sname;
+    markerContent.appendChild(markerSpan);
+    markerContent.appendChild(markerImg);
+    marker.setContent(markerContent); //更新点标记内容
+    marker.setMap(map);
+    return marker;
+}
+function clearMarker(marker) {
+    if (marker) {
+        marker.setMap(null);
+        marker = null;
+    }
+}

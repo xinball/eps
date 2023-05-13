@@ -4,7 +4,7 @@
 <x-modal title="@@{{ user.uname }} 的个性签名" id="sloganModal">
     <div class="modal-body">
         <textarea v-if="editable" id="avatarslogan" v-model="user.uinfo.slogan" placeholder="还没有个性签名哟~" class="form-control" rows="6" style="resize: none;"></textarea>
-        <p v-if="!editable">@{{ user.uinfo.slogan==""?"还没有个性签名哟~":user.uinfo.slogan }}</p>
+        <p v-if="!editable">@{{ user.uinfo.slogan==""?"还没有个性签名~":user.uinfo.slogan }}</p>
     </div>
     <!--footer表示固定位置-->
     <x-slot name="footer">
@@ -15,16 +15,47 @@
 
 <!--个人信息修改拟态框，点击修改后跳转到setting页面-->
 <x-modal title="@@{{ user.uname }} 的个人信息" id="unameModal">
-    <div class="modal-body text-center">
-        <p>邮箱：@{{ user.uemail }}</p>
-        <p>主页：<a :href="(user.uinfo.homepagessl==='0'?'http://':'https://')+user.uinfo.homepage" target="_blank">@{{ user.uinfo.homepage }}</a></p>
-        <p>注册时间：@{{ user.utime }}</p>
-    </div>
-    <div v-if="privatedis" class="modal-body text-center">
-        <p>性别：@{{ user.uinfo.sex=="0"?"女":(user.uinfo.sex=="1"?"男":"未知") }}</p>
-        <p>手机：@{{ user.uinfo.tel ?? "未知" }}</p>
-        <p>QQ：@{{ user.uinfo.qq ?? "未知" }}</p>
-        <p>微信：@{{ user.uinfo.wid ?? "未知" }}</p>
+    <div class="modal-body text-center row">
+        <div class="col-12">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                <a class="btn btn-light form-control" :href="(user.uinfo.homepagessl==='0'?'http://':'https://')+user.uinfo.homepage" target="_blank">@{{ user.uinfo.homepage }}</a>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar2-plus"></i></span>
+                <input type="datetime-local" class="form-control" v-model="user.utime" disabled/>
+            </div>
+        </div>
+        <div v-if="privatedis" class="col-12">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi" :class="{'bi-x':user.uinfo.sex==='2','bi-gender-female':user.uinfo.sex==='0','bi-gender-male':user.uinfo.sex==='1'}"></i></span>
+                <select class="form-select" v-model="user.uinfo.sex" disabled>
+                    <option value="0">女</option>
+                    <option value="1">男</option>
+                    <option value="2">保密</option>
+                </select>
+            </div>
+        </div>
+        <div v-if="privatedis" class="col-12">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                <input type="text" class="form-control" v-model='user.uinfo.tel' placeholder="无" disabled/>
+            </div>
+        </div>
+        <div v-if="privatedis" class="col-12">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tencent-qq"></i></span>
+                <input type="text" class="form-control" v-model='user.uinfo.qq' placeholder="无" disabled/>
+            </div>
+        </div>
+        <div v-if="privatedis" class="col-12">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-wechat"></i></span>
+                <input type="text" class="form-control" v-model='user.uinfo.wid' placeholder="无" disabled/>
+            </div>
+        </div>
     </div>
     <x-slot name="footer">
         <a v-if="editable" href="/user/" target="_blank" class="btn btn-outline-success btn-like">修改信息</a>
@@ -153,8 +184,8 @@
         </div>
         <!--把用户姓名，个性签名显示出来-->
         <div style="padding: 0 0 0 10px;text-align: left;display: flex;flex-direction: column;width: 75%;">
-            <h1 style="cursor: pointer;font-size:32px;margin-bottom: 0;color: white;" data-bs-toggle="modal" data-bs-target="#unameModal">@{{ user.uname }}</h1>
-            <h5 style="cursor: pointer;margin: 0;" data-bs-toggle="modal" data-bs-target="#sloganModal"><small class="d-inline-block text-truncate" style="width: 75%;font-size: 12px;line-height:12px;color: #dddddd;" id="slogannow">@{{ user.uinfo.slogan==""?"还没有个性签名哟~":user.uinfo.slogan }}</small></h5>
+            <h1 style="cursor: pointer;font-size:32px;margin-bottom: 0;color: white;" data-bs-toggle="modal" data-bs-target="#unameModal">@ @{{ user.uname }}</h1>
+            <h5 style="cursor: pointer;margin: 0;" data-bs-toggle="modal" data-bs-target="#sloganModal"><small class="d-inline-block text-truncate" style="width: 75%;font-size: 12px;line-height:12px;color: #dddddd;" id="slogannow"><i class="bi bi-vector-pen"></i> @{{ user.uinfo.slogan==""?"还没有个性签名哟~":user.uinfo.slogan }}</small></h5>
         </div>
     </div>
 
@@ -176,7 +207,14 @@
                     utype:"",
                     uid:"",
                     utime:"",
+                    con_id:"",
+                    coun_id:"",
+                    state_id:"",
+                    city_id:"",
+                    region_id:"",
+                    allowip:[],
                     uinfo:{
+                        addr:"",
                         lang:"cn",
                         private:"0",
                         sex:"2",
@@ -187,11 +225,19 @@
                         wid:"",
                         reg_ip:"",
                         homepagessl:'0',
+                        save:'false',
+                        savemail:'false',
                     },
                 },
-                utypes:isJSON({!! json_encode($config_user['type']) !!}),
+                ipstatus:[],
                 
                 uidtypes:{!! json_encode($config_user['idnotype'],JSON_UNESCAPED_UNICODE) !!},
+                con_ids:[],
+                coun_ids:[],
+                state_ids:[],
+                city_ids:[],
+                region_ids:[],
+                adis:{!! json_encode($config_user['adis'],JSON_UNESCAPED_UNICODE) !!},
                 privatedis:true,
                 editable:false,
 
@@ -208,13 +254,26 @@
                     document.title+=this.user.uname;
                     this.user.uinfo.homepage=this.user.uinfo.homepage===""?'eps.yono.top/user/'+this.user.uid:this.user.uinfo.homepage;
                     this.user.utime=this.user.utime.replace(" ","T");
-                    @if(isset($luser)&&$luser!==null)
+@if(isset($luser)&&$luser!==null)
                     this.editable=this.user.uid==={!! $luser->uid !!};
-                    @endif
+@endif
                     if(!this.editable){
                         this.privatedis=this.editable||(!'private' in this.user.uinfo||this.user.uinfo.private==='0');
                         $('#avatar-modal').attr('id','1');
                         $('#banner-modal').attr('id','2');
+                    }
+                    initaddress(this,"{!! config('var.sla') !!}",this.user,1);
+                    const that = this;
+                    for(let i in this.user.allowip){
+                        this.ipstatus.push("");
+                        const ip = this.user.allowip[i];
+                        getData("{!! config('var.sgo') !!}"+"?ostart="+toDate(new Date().getTime()-86400000*7)+"&uid="+this.user.uid+"&oip="+ip,function(json){
+                            if(json.data&&json.data.operations&&json.data.operations.data&&json.data.operations.data.length>0){
+                                that.ipstatus[i] = "七天内共 "+json.data.operations.data.length+" 条操作记录 最近一次在 "+json.data.operations.data[0].otime;
+                            }else{
+                                that.ipstatus[i] = "最近七天无操作记录";
+                            }
+                        },"",null);
                     }
                 }
             },
@@ -225,6 +284,12 @@
                     upwd1:this.upwd1,
                     upwd2:this.upwd2,
 
+                    con_id:this.user.con_id,
+                    coun_id:this.user.coun_id,
+                    state_id:this.user.state_id,
+                    city_id:this.user.city_id,
+                    region_id:this.user.region_id,
+                    addr:this.user.uinfo.addr,
                     lang:this.user.uinfo.lang,
                     private:this.user.uinfo.private,
                     sex:this.user.uinfo.sex,
@@ -234,6 +299,9 @@
                     homepagessl:this.user.uinfo.homepagessl,
                     qq:this.user.uinfo.qq,
                     wid:this.user.uinfo.wid,
+                    safe:this.user.uinfo.safe,
+                    safemail:this.user.uinfo.safemail,
+                    allowip:JSON.stringify(this.user.allowip),
                     _token:"{{csrf_token()}}"
                 };
 
@@ -248,7 +316,17 @@
 
                 //调用/service/user/alterslogan
                 getData("{!! config('var.uals') !!}",null,"#msg",data);
-            }
+            },
+            clear(){
+                this.user.allowip.length=0;
+            },
+            delip(index){
+                this.user.allowip.splice(index,1);
+                this.ipstatus.splice(index,1);
+            },
+            addip(index){
+                this.user.allowip.push("");
+            },
         },
         mounted(){
             this.init();

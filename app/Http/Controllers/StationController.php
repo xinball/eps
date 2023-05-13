@@ -37,6 +37,7 @@ class StationController extends Controller
                 }elseif($key==="sname"){
                     $where[]=[$key,'like','%'.$v.'%'];
                 }elseif($key==="sid"||$key==="state_id"||$key==="city_id"||$key==="region_id"){
+                    $where[]=[$key,'=',$v];
                 }elseif($key==="atime"){
                     if(!Func::checkNextDay($v)){
                         $this->infoMsg="请选择未来七天内的日期！";
@@ -46,11 +47,11 @@ class StationController extends Controller
                     }
                 }elseif($key==="service"){
                     if(in_array($v,$this->config_station['typekey']['total'])){
-                        $where[]=['sinfo->'.$v,'=',true];
+                        $where[]=['sinfo->'.$v,'=',"1"];
                     }else{
                         $v==='p';
                         $params['service']='p';
-                        $where[]=['sinfo->p','=',true];
+                        $where[]=['sinfo->p','=',"1"];
                     }
                 }
             }
@@ -102,11 +103,11 @@ class StationController extends Controller
                     // }
                 }elseif($key==="service"){
                     if(in_array($v,$this->config_station['typekey']['total'])){
-                        $where[]=['sinfo->'.$v,'=',true];
+                        $where[]=['sinfo->'.$v,'=',"1"];
                     }else{
                         $v==='p';
                         $params['service']='p';
-                        $where[]=['sinfo->p','=',true];
+                        $where[]=['sinfo->p','=',"1"];
                     }
                 }
             }
@@ -116,43 +117,19 @@ class StationController extends Controller
         $params['atime']=($params['atime']??date("Y-m-d",strtotime("+1 day")));
         $params['service']=($params['service']??'p');
         $orwhere=[];
-        if(isset($params['utype'])&&$params['utype']==='a'){
-            $areas=DB::table("admin_area")->where("uid",$this->ladmin->uid)->get();
-            $sids=DB::table("admin_station")->where("uid",$this->ladmin->uid)->pluck("sid")->toArray();
-            $state_ids=[];
-            $city_ids=[];
-            $region_ids=[];
-            foreach($areas as $area){
-                if($area->type==='s'){
-                    $state_ids[]=$area->state_id;
-                }elseif($area->type==='c'){
-                    $city_ids[]=$area->city_id;
-                }elseif($area->type==='r'){
-                    $region_ids[]=$area->region_id;
-                }
-            }
-            if(count($sids)>0){
-                $orwhere['sid']=$sids;
-            }
-            if(count($state_ids)>0){
-                $orwhere['state_id']=$state_ids;
-            }
-            if(count($city_ids)>0){
-                $orwhere['city_id']=$city_ids;
-            }
-            if(count($region_ids)>0){
-                $orwhere['region_id']=$region_ids;
-            }
-            //print_r($orwhere);
-        }
-        $sql=Station::getStationlist($where,$params,$orwhere);
         
-        //echo $sql->toSql();
+        $sql=Station::getStationlist($where,$params);
+        $sids = Station::getSid($this->ladmin->uid);
         $stations=$sql->paginate($this->config_station['listnum'])->withQueryString();
         $this->listMsg($stations);
 
         foreach ($stations as $station){
             $this->getStation($station);
+            if($this->checkauth('x')||in_array($station->sid,$sids)){
+                $station->editable=true;
+            }else{
+                $station->editable=false;
+            }
         }
         $this->result->data=[
             'stations'=>$stations,
@@ -165,10 +142,10 @@ class StationController extends Controller
         $this->url="/station";
         if($station!==null){
             if($station->sstate==='o'){
-                $this->successMsg="";
+                $this->successMsg="获取该站点信息成功";
                 $this->url=null;
-                $station->sadmin=json_encode(Station::getSAdminBy($station),JSON_UNESCAPED_UNICODE);
-                $station->aadmin=json_encode(Station::getAAdminBy($station),JSON_UNESCAPED_UNICODE);
+                $station->sadmin=Station::getSAdminBy($station);
+                $station->aadmin=Station::getAAdminBy($station);
                 $this->getStation($station);
                 $this->result->data=[
                     'station'=>$station,
@@ -192,11 +169,17 @@ class StationController extends Controller
             $station=Station::select("sid","sname","sstate","state_id","city_id","region_id","slng","slat","sinfo","stime")->where('sid',$sid)->first();
             if($station!==null){
                 if($station->sstate!=='d'){
-                    $this->successMsg="";
+                    $this->successMsg="您正以 管理员身份 查看该站点信息";
                     $this->url=null;
                     $station->sadmin=Station::getSAdminBy($station);
                     $station->aadmin=Station::getAAdminBy($station);
                     $this->getStation($station);
+                    $sids = Station::getSid($this->ladmin->uid);
+                    if(in_array($station->sid,$sids)){
+                        $station->editable=true;
+                    }else{
+                        $station->editable=false;
+                    }
                     $this->result->data=[
                         'station'=>$station,
                     ];
@@ -211,12 +194,7 @@ class StationController extends Controller
         $this->getResult();
         return $this->result->toJson();
     }
-    public function check($sname,$stime,$state_id,$city_id,$region_id,$sstate,$slng,$slat,&$r,&$p,&$a,&$v,$rnum,$pnum,$anum,$vnum,$des,$addr,$time,&$approvetime){
-        $r=($r==='true'?true:false);
-        $a=($a==='true'?true:false);
-        $p=($p==='true'?true:false);
-        $v=($v==='true'?true:false);
-        $approvetime=($approvetime==='true'?true:false);
+    public function check($sname,$stime,$state_id,$city_id,$region_id,$sstate,$slng,$slat,&$r,&$p,&$a,&$v,$rnum,$pnum,$anum,$vnum,$des,$addr,$time,&$approvetime,$sid=null){
         if($sstate!=='o'&&$sstate!=='c'){
             $this->errMsg="站点类型有误！请重新创建站点";
         }elseif($sname===null||Func::Length($sname)>50){
@@ -233,51 +211,37 @@ class StationController extends Controller
             $this->errMsg="开放时间描述格式不合规范【长度不得大于200】！";
         }elseif($des===null||$des===""||Func::Length($des)>1000){
             $this->errMsg="站点描述格式不合规范【长度不得大于1000】！";
-        // }elseif($r===true||$r===false){
-        //     $this->errMsg="是否提供报备服务格式有误！";
-        // }elseif($p===true||$p===false){
-        //     $this->errMsg="是否提供核酸检测服务格式有误！";
-        // }elseif($a===true||$a===false){
-        //     $this->errMsg="是否提供抗原检测服务格式有误！";
-        // }elseif($v===true||$v===false){
-        //     $this->errMsg="是否提供疫苗接种服务格式有误！";
-        // }elseif($approvetime===true||$approvetime===false){
-        //     $this->errMsg="是否限制时间格式有误！";
-        }elseif($r===true&&$rnum!==null){
+        }elseif($r!=='1'&&$r!=='0'){
+            $this->errMsg="是否提供报备服务格式有误！";
+        }elseif($p!=='1'&&$p!=='0'){
+            $this->errMsg="是否提供核酸检测服务格式有误！";
+        }elseif($a!=='1'&&$a!=='0'){
+            $this->errMsg="是否提供抗原检测服务格式有误！";
+        }elseif($v!=='1'&&$v!=='0'){
+            $this->errMsg="是否提供疫苗接种服务格式有误！";
+        }elseif($approvetime!=='1'&&$approvetime!=='0'){
+            $this->errMsg="是否限制时间格式有误！";
+        }elseif($r==='1'&&$rnum!==null){
             if(!Func::isNum($rnum)||intval($rnum)<0||intval($rnum)>100000){
                 $this->errMsg="报备人数格式不合规范！【0~100000】";
             }
-        }elseif($p===true&&$pnum!==null){
+        }elseif($p==='1'&&$pnum!==null){
             if(!Func::isNum($pnum)||intval($pnum)<0||intval($pnum)>100000){
                 $this->errMsg="核酸检测人数格式不合规范！【0~100000】";
             }
-        }elseif($a===true&&$anum!==null){
+        }elseif($a==='1'&&$anum!==null){
             if(!Func::isNum($anum)||intval($anum)<0||intval($anum)>100000){
                 $this->errMsg="抗原检测人数格式不合规范！【0~100000】";
             }
-        }elseif($v===true&&$vnum!==null){
+        }elseif($v==='1'&&$vnum!==null){
             if(!Func::isNum($vnum)||intval($vnum)<0||intval($vnum)>100000){
                 $this->errMsg="疫苗接种人数格式不合规范！【0~100000】";
             }
         }else{
-            if($region_id!==null){
-                if(DB::table("regions")->where("id",$region_id)->where("city_id",$city_id)->exists()&&DB::table("cities")->where("id",$city_id)->where("state_id",$state_id)->exists()){
-                    if(!DB::table("admin_area")->where("type","r")->where("region_id",$region_id)->where("uid",$this->ladmin->uid)->exists()&&!DB::table("admin_area")->where("type","c")->where("city_id",$city_id)->where("uid",$this->ladmin->uid)->exists()&&!DB::table("admin_area")->where("type","s")->where("state_id",$state_id)->where("uid",$this->ladmin->uid)->exists()){
-                        $this->errMsg="您对该三级行政区不具备站点管理权限！";
-                    }
-                }else{
-                    $this->errMsg="您填写的行政区信息有误！";
-                }
-            }elseif($city_id!==null){
-                if(DB::table("cities")->where("id",$city_id)->where("state_id",$state_id)->exists()){
-                    if(!DB::table("admin_area")->where("type","c")->where("city_id",$city_id)->where("uid",$this->ladmin->uid)->exists()&&!DB::table("admin_area")->where("type","s")->where("state_id",$state_id)->where("uid",$this->ladmin->uid)->exists()){
-                        $this->errMsg="您对该二级行政区不具备站点管理权限！";
-                    }
-                }else{
-                    $this->errMsg="您填写的行政区信息有误！";
-                }
-            }else{
-                $this->errMsg="您未为该站点选择行政区！";
+            if(!$this->checkstationaddr($region_id,$city_id,$state_id)){
+                $this->errMsg="您填写的行政区信息有误！";
+            }elseif(!$this->checkstationinfoauth($region_id,$city_id,$state_id,$this->ladmin->uid,$sid)){
+                $this->errMsg="您对该行政区或站点不具备站点管理权限！";
             }
         }
         if($this->errMsg!==null){
@@ -305,17 +269,6 @@ class StationController extends Controller
         }
         return true;
     }
-    public function checkauth($station){
-        if(DB::table("admin_area")->where("type","r")->where("region_id",$station->region_id)->where("uid",$this->ladmin->uid)->exists())
-            return 2;
-        elseif(DB::table("admin_area")->where("type","c")->where("city_id",$station->city_id)->where("uid",$this->ladmin->uid)->exists())
-            return 3;
-        elseif(DB::table("admin_area")->where("type","s")->where("state_id",$station->state_id)->where("uid",$this->ladmin->uid)->exists())
-            return 4;
-        elseif(DB::table('admin_station')->where('sid','=',$station->sid)->where('uid','=',$this->ladmin->uid)->exists())
-            return 1;
-        return false;
-    }
     public function insert(Request $request){
         if($this->ladmin!==null){
             $sname=$request->post('sname',null);
@@ -327,17 +280,19 @@ class StationController extends Controller
             $slat=$request->post("slat",null);
 
             $stime=$request->post('stime',null);
-            $p=$request->post('p',null);
-            $r=$request->post('r',null);
-            $v=$request->post('v',null);
+            $p=$request->post('p',"0");
+            $r=$request->post('r',"0");
+            $a=$request->post('a',"0");
+            $v=$request->post('v',"0");
             $pnum=$request->post('pnum',null);
             $rnum=$request->post('rnum',null);
+            $anum=$request->post('anum',null);
             $vnum=$request->post('vnum',null);
             $des=$request->post('des',"");
             $des=Purifier::clean($des);
             $addr=$request->post('addr',"");
             $time=$request->post('time',"");
-            $approvetime=$request->post('approvetime',null);
+            $approvetime=$request->post('approvetime',"0");
             if($this->check($sname,$stime,$state_id,$city_id,$region_id,$sstate,$slng,$slat,$r,$p,$a,$v,$rnum,$pnum,$anum,$vnum,$des,$addr,$time,$approvetime)){
                 $station = new Station();
                 $station->sname=$sname;
@@ -372,7 +327,7 @@ class StationController extends Controller
             $this->errMsg="您不是管理员，没有权限添加站点！";
         }
         $this->getResult();
-        if($this->ladmin!==null){
+        if($this->successMsg){
             $this->insertOperation($request,$this->ladmin->uid,"asi");
         }
         return $this->result->toJson();
@@ -383,7 +338,7 @@ class StationController extends Controller
             if($station!==null){
                 if($station->sstate==='d'){
                     $this->errMsg="该站点已删除，无需再次删除！";
-                }elseif(!$this->checkauth($station)){
+                }elseif(!$this->checkstationauth($station,$this->ladmin->uid)){
                     $this->errMsg="您对该站点或站点所在区域不具备管理权限，无法删除！";
                 }else{
                     $station->sstate='d';
@@ -400,7 +355,7 @@ class StationController extends Controller
             $this->errMsg="您不是管理员，没有权限删除站点！";
         }
         $this->getResult();
-        if($this->ladmin!==null){
+        if($this->successMsg){
             $this->insertOperation($request,$this->ladmin->uid,"asd");
         }
         return $this->result->toJson();
@@ -418,10 +373,10 @@ class StationController extends Controller
                 $slat=$request->post("slat",null);
     
                 $stime=$request->post('stime',null);
-                $r=$request->post('r',null);
-                $p=$request->post('p',null);
-                $a=$request->post('a',null);
-                $v=$request->post('v',null);
+                $r=$request->post('r',"0");
+                $p=$request->post('p',"0");
+                $a=$request->post('a',"0");
+                $v=$request->post('v',"0");
                 $rnum=$request->post('rnum',null);
                 $pnum=$request->post('pnum',null);
                 $anum=$request->post('anum',null);
@@ -430,12 +385,12 @@ class StationController extends Controller
                 $des=Purifier::clean($des);
                 $addr=$request->post('addr',null);
                 $time=$request->post('time',null);
-                $approvetime=$request->post('approvetime',null);
-                if($this->check($sname,$stime,$state_id,$city_id,$region_id,$sstate,$slng,$slat,$r,$p,$a,$v,$rnum,$pnum,$anum,$vnum,$des,$addr,$time,$approvetime)){
+                $approvetime=$request->post('approvetime',"0");
+                if($this->check($sname,$stime,$state_id,$city_id,$region_id,$sstate,$slng,$slat,$r,$p,$a,$v,$rnum,$pnum,$anum,$vnum,$des,$addr,$time,$approvetime,$sid)){
                     $uids=$request->post('sadmin',null);
                     if($uids==="[]"||json_decode($uids,true)){
                         $uids=json_decode($uids,true);
-                        if($this->checkauth($station)===1){
+                        if($this->checkstationauth($station,$this->ladmin->uid)===1){
                             array_push($uids,$this->ladmin->uid);
                         }
                         $uids=array_unique($uids,SORT_NUMERIC);
@@ -496,7 +451,7 @@ class StationController extends Controller
             $this->errMsg="您不是管理员，没有权限修改站点！";
         }
         $this->getResult();
-        if($this->ladmin!==null){
+        if($this->successMsg){
             $this->insertOperation($request,$this->ladmin->uid,"asa");
         }
         return $this->result->toJson();
@@ -507,7 +462,7 @@ class StationController extends Controller
             if($station!==null){
                 if($station->sstate!=='d'){
                     $this->errMsg="该站点未删除，无需恢复！";
-                }elseif(!$this->checkauth($station)){
+                }elseif(!$this->checkstationauth($station,$this->ladmin->uid)){
                     $this->errMsg="您对该站点或站点所在区域不具备管理权限，无法恢复！";
                 }else{
                     $station->sstate='c';
@@ -524,7 +479,7 @@ class StationController extends Controller
             $this->errMsg="您不是管理员，没有权限恢复站点！";
         }
         $this->getResult();
-        if($this->ladmin!==null){
+        if($this->successMsg){
             $this->insertOperation($request,$this->ladmin->uid,"asr");
         }
         return $this->result->toJson();
@@ -535,7 +490,7 @@ class StationController extends Controller
             if($station!==null){
                 if($station->sstate==='d'){
                     $this->errMsg="该站点已删除，无法修改站点图片！";
-                }elseif(!$this->checkauth($station)){
+                }elseif(!$this->checkstationauth($station,$this->ladmin->uid)){
                     $this->errMsg="您对该站点或站点所在区域不具备管理权限，无法修改站点图片！";
                 }else{
                     $dstwidth=$this->config_basic["stationwidth"];
@@ -560,8 +515,9 @@ class StationController extends Controller
                 'imgurl' => $this->config_basic['defaultavatar'],
                 'message' => "您没有权限修改站点图片，请重新登录！"
             );
+        }else{
+            $this->insertOperation($request,$this->ladmin->uid,"asu",json_encode($response,JSON_UNESCAPED_UNICODE));
         }
-        $this->insertOperation($request,$this->ladmin->uid,"asu",json_encode($response,JSON_UNESCAPED_UNICODE));
         echo json_encode($response);
     }
 }

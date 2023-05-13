@@ -41,7 +41,7 @@ class Cities extends Model
         if(Func::Length($cname)>0)
             $sql=$sql->orwhere('cities.cname','like','%'.$cname.'%');
         if(Func::Length($code)>0)
-            $sql=$sql->orwhere('cities.code_full','like','%'.$code.'%');
+            $sql=$sql->orwhere('cities.code','like','%'.$code.'%');
         return $sql->first();
     }
 

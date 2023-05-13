@@ -41,7 +41,7 @@ class Regions extends Model
         if(Func::Length($cname)>0)
             $sql=$sql->orwhere('regions.cname','like','%'.$cname.'%');
         if(Func::Length($code)>0)
-            $sql=$sql->orwhere('regions.code_full','like','%'.$code.'%');
+            $sql=$sql->orwhere('regions.code','like','%'.$code.'%');
         return $sql->first();
     }
     static public function getRegionsByCid($city_id){

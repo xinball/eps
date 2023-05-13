@@ -38,6 +38,11 @@
                                     <i class="bi bi-clipboard-fill"></i> 报备管理
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ isset($oactive)&&$oactive?"active":"" }}" href="/user/operation">
+                                    <i class="bi bi-menu-button-wide-fill"></i> 个人日志
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </nav>

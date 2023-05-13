@@ -54,8 +54,50 @@ class Station extends Model
         })->groupBy("uid","uname","uemail")
         ->join("user","user.uid","admin_area.uid")->get();
     }
-    static public function getStationlist($where,$params,$orwhere=null){
-        $sql = Station::distinct()->select("sid","sname","sstate","sinfo")
+    static public function getSid($uid){
+        $ssids = Station::getSSid($uid);
+        $asids = Station::getASid($uid);
+        return array_unique(array_merge($ssids,$asids));
+    }
+    static public function getSSid($uid){
+        return DB::table("admin_station")->distinct()->where("uid",$uid)->pluck('sid')->toArray();
+    }
+    static public function getASid($uid){
+        $areas = DB::table("admin_area")->distinct()->where('uid',$uid)->get();
+        $state_ids=[];
+        $city_ids=[];
+        $region_ids=[];
+        foreach($areas as $area){
+            if($area->type==='s'){
+                $state_ids[]=$area->state_id;
+            }elseif($area->type==='c'){
+                $city_ids[]=$area->city_id;
+            }elseif($area->type==='r'){
+                $region_ids[]=$area->region_id;
+            }
+        }
+        $orwhere=[];
+        if(count($state_ids)>0){
+            $orwhere['state_id']=$state_ids;
+        }
+        if(count($city_ids)>0){
+            $orwhere['city_id']=$city_ids;
+        }
+        if(count($region_ids)>0){
+            $orwhere['region_id']=$region_ids;
+        }
+        if(count($orwhere)>0){
+            return Station::distinct()->where(function($query) use ($orwhere){
+                foreach($orwhere as $index=>$item){
+                    $query->orWhereIn($index,$item);
+                }
+            })->pluck('sid')->toArray();
+        }else{
+            return [];
+        }
+    }
+    static public function getStationlist($where,$params){
+        $sql = Station::distinct()->select("sid","sname","sstate","sinfo","slng","slat")
         
         ->selectRaw('round(ST_Distance_Sphere(point(?,?),point(slng,slat))) as len',[$params['lng'],$params['lat']])
         
@@ -64,21 +106,20 @@ class Station extends Model
         ->selectRaw('(select count(appoint.aid) from appoint where appoint.sid=station.sid and appoint.atype = ? and appoint.astate = "s" and TO_DAYS(appoint.atime) = TO_DAYS(?)  ) as anum',[$params['service'],$params['atime']])
 
         ->where($where);
-
-        if($orwhere!==null&&count($orwhere)>0){
-            $sql = $sql->where(function ($query) use ($orwhere){
-                foreach($orwhere as $index=>$item){
-                    $query->orWhereIn($index,$item);
-                }
-            });
-        }
         $orderPara = $params['order']??"";
-        if($orderPara==="len"||$orderPara==="num"){
-            $sql=$sql->orderByDesc($orderPara)->orderByDesc('station.sid');
-        }elseif($orderPara==="anum"){
-            $sql=$sql->orderBy($orderPara)->orderByDesc('station.sid');
+        $decs = $params['desc']??"0";
+        if($orderPara==="len"||$orderPara==="num"||$orderPara==="anum"){
+            if($decs==='1'){
+                $sql=$sql->orderByDesc($orderPara)->orderBy('station.sid');
+            }else{
+                $sql=$sql->orderBy($orderPara)->orderBy('station.sid');
+            }
         }else{
-            $sql=$sql->orderByDesc('station.sid');
+            if($decs==='1'){
+                $sql=$sql->orderByDesc('station.sid');
+            }else{
+                $sql=$sql->orderBy('station.sid');
+            }
         }
         return $sql;
     }

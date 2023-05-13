@@ -1,13 +1,12 @@
 @extends('admin.master')
 
-@section('title','标签管理')
+@section('title','用户日志')
 @section('nextCSS2')
 
 @endsection
+
 @section('main')
-
-@include('template.taglist',['utype'=>'a'])
-
+@include('template.operationlist',['utype'=>'a'])
 @endsection
 
 @section('nextJS')

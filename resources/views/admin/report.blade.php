@@ -1,13 +1,13 @@
 @extends('admin.master')
 
-@section('title','提交状态管理')
+@section('title','报备管理')
 @section('nextCSS2')
 
 @endsection
 
 @section('main')
 
-@include('template.statuslist',['utype'=>'a'])
+@include('appoint.list_tem',['utype'=>'a','type'=>'r'])
 
 @endsection
 

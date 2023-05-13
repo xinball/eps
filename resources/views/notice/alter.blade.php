@@ -40,6 +40,7 @@
         <!--右下角不动的按钮-->
         <x-slot name="footer">
             <!--调用下方alter（）函数-->
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
             <button type="button" class="btn btn-outline-success"  @click="alter">@{{ sendtypes[sendtype] }}</button>
         </x-slot>
     </x-modal>
@@ -49,6 +50,8 @@
         const alterapp=Vue.createApp({
             data() {
                 return{
+                    index:0,
+                    nid:0,
                     notice:{
                         nid:"",
                         ntitle:"",
@@ -86,7 +89,14 @@
                     }
                     console.log(data);
                     //前后端接口，调用alter
-                    getData("{!! config('var.ana') !!}"+this.notice.nid,null,"#alter-msg",data);                    
+                    getData("{!! config('var.ana') !!}"+this.notice.nid,function(){
+                        if(json.status===1){
+                            if(typeof noticelist !== 'undefined'){
+                                noticelist.getData();
+                            }
+                            $('#alter').modal("hide");
+                        }
+                    },"#alter-msg",data);                    
                 },
                 //初始化，点进去要先显示原本的数据，因此要先用aget取出来
                 init(){
@@ -96,8 +106,7 @@
                     filterTypes(this.ntypes,this.typekey);
                     let that = this;
                     document.getElementById('alter').addEventListener('show.bs.modal',function(event){
-                        const nid = event.relatedTarget.getAttribute('data-bs-nid');
-                        getData("{!! config('var.ang') !!}"+nid,function(json){
+                        getData("{!! config('var.ang') !!}"+that.nid,function(json){
                             if(json.data!==null){
                                 that.notice = json.data.notice;
                                 that.notice.ntime = that.notice.ntime.replace(' ','T');
