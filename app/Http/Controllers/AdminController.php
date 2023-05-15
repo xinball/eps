@@ -30,7 +30,7 @@ class AdminController extends Controller
         return view('admin.notice')->with('nactive',true);
     }
     public function userview(Request $request){
-        if (!$this->checkauth("s")){
+        if (!$this->checkauth("x")){
             return $this->defaultAdminView($request);
         }
         return view('admin.user')->with('uactive',true);
@@ -54,7 +54,7 @@ class AdminController extends Controller
         return view('admin.report')->with('ractive',true);
     }
     public function operationview(Request $request){
-        if (!$this->checkauth("s")){
+        if (!$this->checkauth("x")){
             return $this->defaultAdminView($request);
         }
         return view('admin.operation')->with('oactive',true);

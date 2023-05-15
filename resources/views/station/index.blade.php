@@ -23,7 +23,7 @@
 @if(isset($ladmin)&&$ladmin!==null)
                     <a v-if="station.sstate==='c'" aria-hidden="true" class="btn rounded-pill btn-secondary"><i class="bi bi-building-slash"></i> 已关闭</a>
                     <a v-else-if="station.sstate==='o'" class="btn rounded-pill btn-success"><i class="bi bi-building"></i> 开放中</a>
-                    <a v-if="station.editable===true&&station.sstate!=='d'"  class="btn rounded-pill btn-outline-success" :data-bs-sid="station.sid" data-bs-target="#alter" data-bs-toggle="modal" ><i class="bi bi-building-gear"></i> 编辑</a>
+                    <a v-if="station.editable===true&&station.sstate!=='d'"  class="btn rounded-pill btn-outline-success" @click="openalter()" ><i class="bi bi-building-gear"></i> 编辑</a>
                     <a v-if="station.editable===true&&station.sstate!=='d'"  class="btn rounded-pill btn-outline-danger" @click="del()"><i class="bi bi-building-x"></i> 删除</a>
                     <a v-if="station.editable===true&&station.sstate==='d'"  class="btn rounded-pill btn-outline-success" @click="recover()"><i class="bi bi-building-check"></i> 恢复</a>  
 @elseif(isset($luser)&&$luser!==null)
@@ -209,6 +209,10 @@
                 },
                 refreshStatus(){
                     let that=this;
+                },
+                openalter(){
+                    alterapp.sid=this.station.sid;
+                    $('#alter').modal("show");
                 },
                 //删除站点
                 del(index){

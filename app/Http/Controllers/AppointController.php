@@ -118,7 +118,7 @@ class AppointController extends Controller
         //排序 预约/报备时间倒序 编号倒序
         $orderPara = $params['order']??"";
         $desc = $params['desc']??"1";
-        if($orderPara==="stime"){
+        if($orderPara==="atime"){
             if($desc==='1'){
                 $sql=$sql->orderByDesc($orderPara)->orderBy('appoint.aid');
             }else{

@@ -174,8 +174,7 @@ class StationController extends Controller
                     $station->sadmin=Station::getSAdminBy($station);
                     $station->aadmin=Station::getAAdminBy($station);
                     $this->getStation($station);
-                    $sids = Station::getSid($this->ladmin->uid);
-                    if(in_array($station->sid,$sids)){
+                    if($this->checkstationauth($station,$this->ladmin->uid)){
                         $station->editable=true;
                     }else{
                         $station->editable=false;
@@ -390,7 +389,7 @@ class StationController extends Controller
                     $uids=$request->post('sadmin',null);
                     if($uids==="[]"||json_decode($uids,true)){
                         $uids=json_decode($uids,true);
-                        if($this->checkstationauth($station,$this->ladmin->uid)===1){
+                        if($this->checkstationauth($station,$this->ladmin->uid)===4){
                             array_push($uids,$this->ladmin->uid);
                         }
                         $uids=array_unique($uids,SORT_NUMERIC);

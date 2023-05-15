@@ -56,7 +56,7 @@ class SystemController extends Controller
     }
     public function getOperation(Request $request){
         $params=$request->all();
-        if ((isset($params['uid'])&&$this->luser&&$this->luser->uid.''===$params['uid'])||$this->ladmin){
+        if ((isset($params['uid'])&&$this->luser&&$this->luser->uid.''===$params['uid'])||$this->checkauth('x')){
             $sql=Operation::select("oid","user.uid","user.uname","otype","oip","orequest","oresult","otime","oinfo");
             $where=[];
             foreach ($params as $key=>$v){
@@ -66,7 +66,7 @@ class SystemController extends Controller
                     }elseif($key==="type"&&isset($this->config_operation['type'][$v])){
                         $where[]=['otype','=',$v];
                     }elseif($key==="uid"){
-                        if($this->ladmin){
+                        if($this->checkauth('x')){
                             $where[]=["operation.uid",'=',$v];
                         }else{
                             $where[]=["operation.uid",'=',$this->luser->uid];

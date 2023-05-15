@@ -54,7 +54,7 @@
             </div>
         </form>
     </x-offcanvas>
-        <x-modal id='info' class="modal-lg" title="@@{{applyflag===1?'提交申请':(cancelflag===1?'撤销申请':'预约/报备信息')}}">
+        <x-modal id='info' class="modal-lg" title="@@{{applyflag===1?'提交申请':(cancelflag===1?'撤销申请':(refuseflag===1?'拒绝申请':(approveflag===1?'完成预约':'预约/报备信息')))}}">
             <div v-if="appoint!==null" style="word-wrap:break-word;word-break:break-all;over-flow:hidden;">
                 <div class="row">
                     <div class="col-12">
@@ -131,7 +131,7 @@
                     <x-slot name="footer">
                         <div class="input-group justify-content-end">
                             <input v-if="approveflag===1&&appoint.astate==='s'" v-model="msg" placeholder="同意原因说明信息" class="form-control"/>
-                            <a v-if="approveflag===1&&appoint.astate==='s'" @click="approve()" class="btn btn-outline-warning">同意</a>
+                            <a v-if="approveflag===1&&appoint.astate==='s'" @click="approve()" class="btn btn-outline-warning">完成</a>
 
                             <input v-if="refuseflag===1&&appoint.astate==='s'" v-model="msg" placeholder="拒绝原因说明信息" class="form-control"/>
                             <a v-if="refuseflag===1&&appoint.astate==='s'" @click="refuse()" class="btn btn-outline-warning">拒绝</a>
@@ -208,6 +208,7 @@
                     applyflag:0,
                     cancelflag:0,
                     approveflag:0,
+                    refuseflag:0,
                     msg:"",
                     apinfo:{
                         state_id:0,
@@ -324,6 +325,7 @@
                     this.applyflag=0;
                     this.cancelflag=0;
                     this.approveflag=0,
+                    this.refuseflag=0;
                     $('#info').modal("show");
                 },
 @if (isset($utype)&&$utype==="a")
@@ -331,6 +333,9 @@
                     this.index=index;
                     this.aid=this.appoints[index].aid;
                     this.approveflag=1;
+                    this.applyflag=0;
+                    this.cancelflag=0;
+                    this.refuseflag=0;
                     $('#info').modal("show");
                 },
                 approve(index){
@@ -346,6 +351,9 @@
                     this.index=index;
                     this.aid=this.appoints[index].aid;
                     this.refuseflag=1;
+                    this.applyflag=0;
+                    this.cancelflag=0;
+                    this.approveflag=0,
                     $('#info').modal("show");
                 },
                 refuse(){
@@ -372,12 +380,18 @@
                     this.index=index;
                     this.aid=this.appoints[index].aid;
                     this.cancelflag=1;
+                    this.applyflag=0;
+                    this.approveflag=0,
+                    this.refuseflag=0;
                     $('#info').modal("show");
                 },
                 openapply(index){
                     this.index=index;
                     this.aid=this.appoints[index].aid;
                     this.applyflag=1;
+                    this.cancelflag=0;
+                    this.approveflag=0,
+                    this.refuseflag=0;
                     $('#info').modal("show");
                 },
                 del(index){

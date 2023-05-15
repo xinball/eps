@@ -165,7 +165,7 @@ class UserController extends Controller
                 $this->errMsg="您所在IP已被封禁！";//错误次数太多了
                 Redis::LPUSH('ban',$ip);
             }elseif($left<=1) {
-                $this->errMsg="此用户已被锁定，输入错误".(5+$left)."次后将封禁所在IP，请更改密码或等待解锁后重新登录！";
+                $this->errMsg="此用户已被锁定，继续尝试".(5+$left)."次后将封禁所在IP，请更改密码或等待解锁后重新登录！";
                 Redis::setex("left_".$user->uid,3600,$left-1);
             }else {
                 if($user->uname!==$uname) {
