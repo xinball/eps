@@ -38,6 +38,19 @@ class Station extends Model
     protected $primaryKey = "sid";
     public $timestamps=false;
     //
+    
+    static public function getAdminBy($station){
+        $sadmin = Station::getSAdminBy($station);
+        $aadmin = Station::getAAdminBy($station);
+        $uemails = [];
+        foreach($sadmin as $item){
+            $uemails[] = $item->uemail;
+        }
+        foreach($aadmin as $item){
+            $uemails[] = $item->uemail;
+        }
+        return $uemails;
+    }
     static public function getSAdminBy($station){
         return DB::table("admin_station")->distinct()->select("user.uid","uemail","uname","pri")->where("sid",$station->sid)->orderByDesc("pri")->join("user","user.uid","admin_station.uid")->get();
     }

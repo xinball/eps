@@ -47,7 +47,7 @@
     <!--下面是公告管理页面上方的类型选择按钮-->
 
 @if (isset($utype)&&$utype==="a")
-    <div class="input-group     justify-content-center">
+    <div class="input-group justify-content-center">
         <button v-for="(dis,index) in adis" style="" @click="set('type',index)" class="btn" :class="[params.type===index?'btn-'+dis.btn:'btn-outline-'+dis.btn]" :disabled="data.num[index]===0">
             @{{ dis.label }} <span v-if="data.num[index]>0" :class="dis.num">@{{ data.num[index] }}</span>
         </button>

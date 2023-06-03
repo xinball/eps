@@ -30,7 +30,7 @@
             </div>
 @endif
             <div class="mb-3 col-12 form-floating">
-                <select class="form-select" v-model="params.state" id="paramsstate">
+                <select class="form-select" v-model="params.astate" id="paramsstate">
                     <option v-for="(item,index) in states" :key="index" :value="index" :label="item.label">@{{ item.label }}</option>
                     <option value="" label="所有状态类型">所有状态类型</option>
                 </select>
@@ -131,10 +131,10 @@
                     <x-slot name="footer">
                         <div class="input-group justify-content-end">
                             <input v-if="approveflag===1&&appoint.astate==='s'" v-model="msg" placeholder="同意原因说明信息" class="form-control"/>
-                            <a v-if="approveflag===1&&appoint.astate==='s'" @click="approve()" class="btn btn-outline-warning">完成</a>
+                            <a v-if="approveflag===1&&appoint.astate==='s'" @click="approve()" class="btn btn-outline-success">完成</a>
 
                             <input v-if="refuseflag===1&&appoint.astate==='s'" v-model="msg" placeholder="拒绝原因说明信息" class="form-control"/>
-                            <a v-if="refuseflag===1&&appoint.astate==='s'" @click="refuse()" class="btn btn-outline-warning">拒绝</a>
+                            <a v-if="refuseflag===1&&appoint.astate==='s'" @click="refuse()" class="btn btn-outline-danger">拒绝</a>
 
                             <input v-if="cancelflag===1&&appoint.astate==='s'" v-model="msg" placeholder="撤销原因说明信息" class="form-control"/>
                             <a v-if="cancelflag===1&&appoint.astate==='s'" @click="cancel()" class="btn btn-outline-warning">撤销</a>
@@ -147,6 +147,12 @@
                 </div>
             </div>
         </x-modal>
+        
+    <div class="input-group justify-content-center">
+        <button v-for="(dis,index) in dises" style="" @click="set('astate',index)" class="btn" :class="[params.astate===index?'btn-'+dis.btn:'btn-outline-'+dis.btn]" :disabled="data.num[index]===undefined||data.num[index]===0">
+            @{{ dis.label }} <span v-if="data.num[index]>0" :class="dis.num">@{{ data.num[index] }}</span>
+        </button>
+    </div>
     <div v-if="appoints.length>0">
         <div class="item thead-dark thead">
             <div class="row">
@@ -243,7 +249,7 @@
                         type:["r"],
 @endif
                         msg:"",
-                        state:"",
+                        astate:"",
                         order:"atime",
                         desc:"1",
                         start:"2023-01-01T00:00:00",
@@ -259,6 +265,8 @@
 @else
                     services:{!! json_encode($config_station['typer'],JSON_UNESCAPED_UNICODE) !!},
 @endif
+                    dises:{!! json_encode($config_appoint['dis'],JSON_UNESCAPED_UNICODE) !!},
+                    data:{num:{sum:0}},
                     states:{!! json_encode($config_appoint['state'],JSON_UNESCAPED_UNICODE) !!},
                     processtype:{!! json_encode($config_appoint['processtype'],JSON_UNESCAPED_UNICODE) !!},
                 }
@@ -312,7 +320,7 @@
                         type:["r"],
 @endif
                         msg:"",
-                        state:"",
+                        astate:"",
                         order:"atime",
                         desc:"1",
                         start:"2023-01-01T00:00:00",

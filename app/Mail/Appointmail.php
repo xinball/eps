@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class Usermail extends Mailable implements ShouldQueue
+class Appointmail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -19,12 +19,14 @@ class Usermail extends Mailable implements ShouldQueue
      */
     public $user;
     public $option;
+    public $var;
 
     public function __construct($user,$option)
     {
         //
         $this->user=$user;
         $this->option=$option;
+        $this->var=config('var');
     }
 
     /**
@@ -34,6 +36,6 @@ class Usermail extends Mailable implements ShouldQueue
      */
     public function build()
     {
-        return $this->subject($this->option['subject'])->view('emails.user');
+        return $this->subject($this->option['subject'])->view('emails.appoint');
     }
 }

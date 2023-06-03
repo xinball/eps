@@ -11,6 +11,24 @@ use App\Library\Func;
 
 class AppointController extends Controller
 {
+    public function checklim($appoint){
+        if(Aprocess::counttoday($appoint->aid,$appoint->uid)>$this->config_appoint['todaylim']){
+            $this->errMsg="您今日对该条预约/报备操作已超出限制！";
+            $this->getResult();
+            return false;
+        }
+        if(Aprocess::countappoint($appoint->aid,$appoint->uid)>$this->config_appoint['applim']){
+            $this->errMsg="您对该条预约/报备操作已超出限制！";
+            $this->getResult();
+            return false;
+        }
+        if(Aprocess::counttotal($appoint->uid)>$this->config_appoint['totallim']){
+            $this->errMsg="您今日操作已超出限制！";
+            $this->getResult();
+            return false;
+        }
+        return true;
+    }
     public function indexview(Request $request,$aid){
         if($this->ladmin!==null){
             return view('appoint.index')->with('aactive',true)->with('result',$this->aget($aid));
@@ -85,6 +103,7 @@ class AppointController extends Controller
         //条件筛选
         $where[]=['appoint.uid','=',$this->luser->uid];
         $types=[];
+        $astate=null;
         foreach ($params as $key=>$v){
             if($v!==""&&$v!==null){
                 if($key==="msg"){
@@ -93,8 +112,8 @@ class AppointController extends Controller
                     $where[]=['atime','>=',$v];
                 }elseif($key==="end"&&strtotime($v)){
                     $where[]=['atime','<=',$v];
-                }elseif($key==="astate"&&in_array($v,$this->config_appoint['statekey']['all'])){
-                    $where[]=['astate','=',$v];
+                }elseif($key==="astate"&&in_array($v,$this->config_appoint['statekey']['total'])){
+                    $astate=$v;
                 }elseif($key==="type"){
                     $type = json_decode($v);
                     if($type!==null){
@@ -111,6 +130,9 @@ class AppointController extends Controller
         }
 
         $sql=$sql->where($where);
+        if($astate!==null){
+            $sql=$sql->where('astate',$astate);
+        }
         if(count($types)>0){
             $sql=$sql->whereIn('atype',$types);
         }
@@ -142,7 +164,7 @@ class AppointController extends Controller
         //获取每种预约/报备的数量
         $this->result->data=[
             'appoints'=>$appoints,
-            'num'=>$this->getTypeNum(),
+            'num'=>$this->getTypeNum($where,$types,'u'),
         ];
         
         $this->getResult();
@@ -159,6 +181,7 @@ class AppointController extends Controller
         $params=$request->all();
         $where=[];
         $types=[];
+        $astate=null;
         foreach ($params as $key=>$v){
             if($v!==""&&$v!==null){
                 if($key==="msg"){
@@ -167,8 +190,8 @@ class AppointController extends Controller
                     $where[]=['atime','>=',$v];
                 }elseif($key==="end"&&strtotime($v)){
                     $where[]=['atime','<=',$v];
-                }elseif($key==="astate"&&in_array($v,$this->config_appoint['statekey']['all'])){
-                    $where[]=['astate','=',$v];
+                }elseif($key==="astate"&&in_array($v,$this->config_appoint['statekey']['total'])){
+                    $astate=$v;
                 }elseif($key==="type"){
                     $type = json_decode($v);
                     if($type!==null){
@@ -186,6 +209,9 @@ class AppointController extends Controller
         //管理员筛选预约/报备
         $sids = Station::getSid($this->ladmin->uid);
         $sql = $sql->join('station','appoint.sid','station.sid')->join('user','appoint.uid','user.uid')->where($where);
+        if($astate!==null){
+            $sql=$sql->where('astate',$astate);
+        }
         if(!$this->checkauth('x')){
             $sql=$sql->whereIn("appoint.sid",$sids);
         }
@@ -207,34 +233,35 @@ class AppointController extends Controller
         //获取每种预约/报备的数量
         $this->result->data=[
             'appoints'=>$appoints,
-            'num'=>$this->getTypeNum('a',$sids)
+            'num'=>$this->getTypeNum($where,$types,'a',$sids)
         ];
         view()->share("appoints",$appoints);
         $this->getResult();
         return $this->result->toJson();
     }
-    public function getTypeNum($utype="u",$sids=null){
+    public function getTypeNum($where,$types,$utype,$sids=null){
+        $statekey='total';
         if($utype=="a"){
-            $sql = Appoint::select('astate as state',DB::raw("count('aid') as num"))->whereIn("sid",$sids);
-            $statekey='total';
+            $sql = Appoint::select('astate',DB::raw("count('aid') as num"))->where($where)->whereIn("sid",$sids);
         }else{
-            $sql=Appoint::select('astate as state',DB::raw("count('aid') as num"))
-            ->where('uid','=', $this->luser->uid);
-            $statekey='all';
+            $sql=Appoint::select('astate',DB::raw("count('aid') as num"))->where($where)->where('uid','=', $this->luser->uid);
+        }
+        if(count($types)>0){
+            $sql=$sql->whereIn('atype',$types);
         }
         // echo $sql->toSql();
         $nums = $sql->groupBy('astate')->get();
         $statenum=[
-            'sum'=>0,
+            ''=>0,
         ];
         foreach($nums as $item){
-            $statenum[$item->state]=$item->num;
+            $statenum[$item->astate]=$item->num;
         }
-        foreach($this->config_appoint['statekey'][$statekey] as $state){
-            if(!isset($statenum[$state])){
-                $statenum[$state]=0;
+        foreach($this->config_appoint['statekey'][$statekey] as $astate){
+            if(!isset($statenum[$astate])){
+                $statenum[$astate]=0;
             }
-            $statenum['sum']+=$statenum[$state];
+            $statenum['']+=$statenum[$astate];
         }
         return $statenum;
     }
@@ -312,19 +339,26 @@ class AppointController extends Controller
             $appoint=Appoint::where('aid',$aid)->first();
             if($appoint!==null){
                 if($appoint->uid===$this->luser->uid){
-                    if($appoint->astate==='n'||$appoint->astate==='r'||$appoint->astate==='f'){
-                        $appoint->astate='d';
-                        if($appoint->update()>0){
-                            $this->insertAprocess($appoint->aid,$this->luser->uid,'d',"");
-                            $this->successMsg="删除该预约/报备成功！";
+                        if($appoint->astate==='n'||$appoint->astate==='r'||$appoint->astate==='f'){
+                            $appoint->astate='d';
+                            if($appoint->update()>0){
+                                $this->insertAprocess($appoint->aid,$this->luser->uid,'d',"");
+                                Func::sendAppointMail($this->luser,[
+                                    'subject'=>$this->config_basic['name']."-预约/报备-删除",
+                                    'name'=>$this->luser->uname,
+                                    'utype'=>'用户',
+                                    'des'=>"删除了一条预约/报备！",
+                                    'aid'=>$aid,
+                                ],$this->luser->uemail);
+                                $this->successMsg="删除该预约/报备成功！";
+                            }else{
+                                $this->errMsg="删除该预约/报备失败！";
+                            }
+                        }elseif($appoint->astate==='d'){
+                            $this->errMsg="该预约/报备已删除，无需再次删除！";
                         }else{
-                            $this->errMsg="删除该预约/报备失败！";
+                            $this->errMsg="该预约/报备已提交，无法删除！";
                         }
-                    }elseif($appoint->astate==='d'){
-                        $this->errMsg="该预约/报备已删除，无需再次删除！";
-                    }else{
-                        $this->errMsg="该预约/报备已提交，无法删除！";
-                    }
                 }else{
                     $this->errMsg="您不是该预约/报备的创建者，无法删除！";
                 }
@@ -348,6 +382,9 @@ class AppointController extends Controller
             if($appoint!==null){
                 if($appoint->uid===$this->luser->uid){
                     if($appoint->astate==='d'){
+                        if(!$this->checklim($appoint)){
+                            return $this->result->toJson();
+                        }
                         $temappoint = clone $appoint;
                         $appoint->aprocesses=Aprocess::getAprocessByAid($aid);
                         $this->getAppoint($appoint);
@@ -368,6 +405,13 @@ class AppointController extends Controller
                         }
                         if($temappoint->update()>0){
                             $this->insertAprocess($temappoint->aid,$this->luser->uid,'e',"");
+                            Func::sendAppointMail($this->luser,[
+                                'subject'=>$this->config_basic['name']."-预约/报备-恢复",
+                                'name'=>$this->luser->uname,
+                                'utype'=>'用户',
+                                'des'=>"恢复了一条预约/报备！",
+                                'aid'=>$aid,
+                            ],$this->luser->uemail);
                             $this->successMsg="恢复该预约/报备成功！";
                         }else{
                             $this->errMsg="恢复该预约/报备失败！";
@@ -402,6 +446,14 @@ class AppointController extends Controller
                             $appoint->astate='r';
                             if($appoint->update()>0){
                                 $this->insertAprocess($appoint->aid,$this->ladmin->uid,'r',$msg);
+                                $user = $this->getUserBy($appoint->uid);
+                                Func::sendAppointDefMail($this->ladmin,[
+                                    'subject'=>$this->config_basic['name']."-预约/报备-拒绝",
+                                    'name'=>$user->uname,
+                                    'utype'=>'管理员',
+                                    'des'=>"拒绝了一条预约/报备，请您进行后续处理！",
+                                    'aid'=>$aid,
+                                ],$user->uemail,Station::getAdminBy($station));
                                 $this->successMsg="拒绝该预约/报备成功！";
                             }else{
                                 $this->errMsg="拒绝该预约/报备失败！";
@@ -453,6 +505,14 @@ class AppointController extends Controller
                                 $temappoint->astate='f';
                                 if($temappoint->update()>0){
                                     $this->insertAprocess($appoint->aid,$this->ladmin->uid,'f',$apinfo);
+                                    $user = $this->getUserBy($appoint->uid);
+                                    Func::sendAppointDefMail($this->ladmin,[
+                                        'subject'=>$this->config_basic['name']."-预约/报备-同意",
+                                        'name'=>$user->uname,
+                                        'utype'=>'管理员',
+                                        'des'=>"同意了一条预约/报备！",
+                                        'aid'=>$aid,
+                                    ],$user->uemail,Station::getAdminBy($station));
                                     $this->successMsg="完成该预约/报备成功！";
                                 }else{
                                     $this->errMsg="完成该预约/报备失败！";
@@ -496,6 +556,14 @@ class AppointController extends Controller
                         if(Func::Length($msg)<=50&&Func::Length($msg)>=5){
                             if($appoint->update()>0){
                                 $this->insertAprocess($appoint->aid,$this->luser->uid,'c',$msg);
+                                $station=Station::where('sid',$appoint->sid)->first();
+                                Func::sendAppointDefMail($this->luser,[
+                                    'subject'=>$this->config_basic['name']."-预约/报备-撤销",
+                                    'name'=>"各位站点管理员及区域管理员",
+                                    'utype'=>'用户',
+                                    'des'=>"撤销了一条预约/报备！",
+                                    'aid'=>$aid,
+                                ],Station::getAdminBy($station),$this->luser->uemail);
                                 $this->successMsg="撤销该预约/报备成功！";
                             }else{
                                 $this->errMsg="撤销该预约/报备失败！";
@@ -533,6 +601,9 @@ class AppointController extends Controller
             if($appoint!==null){
                 if($appoint->uid===$this->luser->uid){
                     if($appoint->astate==='n'||$appoint->astate==='r'){
+                        if(!$this->checklim($appoint)){
+                            return $this->result->toJson();
+                        }
                         $temappoint = clone $appoint;
                         $this->getAppoint($appoint);
                         $station;
@@ -549,6 +620,13 @@ class AppointController extends Controller
                             $temappoint->astate='s';
                             if($temappoint->update()>0){
                                 $this->insertAprocess($temappoint->aid,$this->luser->uid,'s',$temappoint);
+                                Func::sendAppointDefMail($this->luser,[
+                                    'subject'=>$this->config_basic['name']."-预约/报备-提交",
+                                    'name'=>"各位站点管理员及区域管理员",
+                                    'utype'=>'用户',
+                                    'des'=>"提交了一条预约/报备，请相关管理员尽快处理！",
+                                    'aid'=>$aid,
+                                ],Station::getAdminBy($station),$this->luser->uemail);
                                 $this->successMsg="申请预约/报备成功，联系管理员可快速通过申请！";
                             }else{
                                 $this->errMsg="申请该预约/报备失败！";
@@ -587,6 +665,9 @@ class AppointController extends Controller
             if($appoint!==null){
                 if($appoint->uid===$this->luser->uid){
                     if($appoint->astate==='n'||$appoint->astate==='r'){
+                        if(!$this->checklim($appoint)){
+                            return $this->result->toJson();
+                        }
                         $sid=$appoint->sid;
                         $atype=$request->post("atype",null);
                         $atime=$request->post("atime",null);
@@ -609,8 +690,15 @@ class AppointController extends Controller
                         $appoint->atype=$atype;
                         $appoint->atime=$atime;
                         $appoint->astate='n';
-                        if($appoint->update()){
+                        if($appoint->update()>0){
                             $this->insertAprocess($appoint->aid,$this->luser->uid,'a',$appoint);
+                            Func::sendAppointMail($this->luser,[
+                                'subject'=>$this->config_basic['name']."-预约/报备-修改",
+                                'name'=>$this->luser->uname,
+                                'utype'=>'用户',
+                                'des'=>"修改了一条预约/报备！",
+                                'aid'=>$aid,
+                            ],$this->luser->uemail);
                             $this->successMsg="预约/报备修改成功！";
                         }else{
                             $this->errMsg='预约/报备修改失败！';
@@ -643,6 +731,10 @@ class AppointController extends Controller
             if(!$this->checkAprocess($this->luser->uid)){
                 return $this->result->toJson();
             }
+            if(Aprocess::counttotal($appoint->uid)>$this->config_appoint['totallim']){
+                $this->errMsg="您今日操作已超出限制！";
+                return $this->result->toJson();
+            }
             $sid=$request->post("sid",null);
             $atype=$request->post("atype",null);
             $atime=$request->post("atime",null);
@@ -669,6 +761,13 @@ class AppointController extends Controller
             $appoint->astate='n';
             if($appoint->save()){
                 $this->insertAprocess($appoint->aid,$this->luser->uid,'n',$appoint);
+                Func::sendAppointMail($this->luser,[
+                    'subject'=>$this->config_basic['name']."-预约/报备-添加",
+                    'name'=>$this->luser->uname,
+                    'utype'=>'用户',
+                    'des'=>"新增了一条预约/报备，请尽快提交至管理员审核！",
+                    'aid'=>$aid,
+                ],$this->luser->uemail);
                 $this->successMsg="预约/报备创建成功，请在预约/报备时限前提交申请！";
             }else{
                 $this->errMsg='预约/报备创建失败！';

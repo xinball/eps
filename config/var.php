@@ -3,6 +3,14 @@
 
  //路径变量配置                            //相当于别名
 return [
+    'vaa'=> config('app.url')."/admin/appoint/",
+    'vua'=> config('app.url')."/user/appoint/",
+    'vhorizon'=> config('app.url')."/horizon",
+    'vbt'=> "https://yono.top:8888/tencentcloud",
+    'vredis'=> "https://yono.top/redis",
+    
+    'vu'=> config('app.url')."/user/",
+
     'ug'=> config('app.url')."/service/user/get/",
     'ual'=>config('app.url')."/service/user/alter",
     'uals'=>config('app.url')."/service/user/alterslogan",

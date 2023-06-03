@@ -173,7 +173,7 @@ class AdminController extends Controller
         return $this->result->toJson();
     }
     public function alter(Request $request,$config) {
-        if (!$this->checkauth("x")){                 //只有系统管理员可以修改网站配置
+        if (!$this->checkauth("x")){//只有系统管理员可以修改网站配置
             $this->errMsg="您没有权限修改网站配置信息，请重新登录！";
         }else{
             if($config==='bans'){
@@ -185,7 +185,7 @@ class AdminController extends Controller
             }else{
                 $params=$request->all();
                 foreach($params as $key=>$param){
-                    if(Redis::hGet($config,$key)){
+                    if(Redis::hGet($config,$key)!==null){
                         Redis::hSet($config,$key,$param);
                     }
                 }

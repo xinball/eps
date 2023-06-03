@@ -182,6 +182,7 @@ return [
         App\Providers\AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
+        App\Providers\HorizonServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Mews\Purifier\PurifierServiceProvider::class,
         \Chumper\Zipper\ZipperServiceProvider::class,Jenssegers\Agent\AgentServiceProvider::class,

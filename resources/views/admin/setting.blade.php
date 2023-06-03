@@ -17,8 +17,7 @@
             <div class="col-md-6">
                 <label for="status" class="form-label">网站状态</label>
                 <select class="form-select" v-model="basic.status" id="status" required>
-                    <option value="1">正常运行</option>
-                    <option value="2">维护中</option>
+                    <option value="1">开启</option>
                     <option value="0">关闭</option>
                 </select>
             </div>
@@ -206,6 +205,44 @@
         <hr class="my-4">
         <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter('station')">修改站点配置</button>
         <hr class="my-4">
+        <h1 class="mb-3">预约/报备</h1>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="appointlistnum" class="form-label">每页数量</label>
+                <input type="number" class="form-control" id="appointlistnum" v-model="appoint.listnum" placeholder="20" required>
+            </div>
+            <div class="col-md-6">
+                <label for="appointpagenum" class="form-label">显示页面数量/2</label>
+                <input type="number" class="form-control" id="appointpagenum" v-model="appoint.pagenum" placeholder="3" required>
+            </div>
+            <div class="col-md-6">
+                <label for="appointprocesstype" class="form-label">处理类型</label>
+                <textarea class="form-control" id="appointprocesstype" rows="5" style="resize:none;"  v-model="appoint.processtype" required></textarea>
+            </div>
+            <div class="col-md-6">
+                <label for="appointstate" class="form-label">状态</label>
+                <textarea class="form-control" id="appointstate" rows="5" style="resize:none;"  v-model="appoint.state" required></textarea>
+            </div>
+            <div class="col-md-6">
+                <label for="appointstatekey" class="form-label">状态分类</label>
+                <textarea class="form-control" id="appointstatekey" rows="5" style="resize:none;"  v-model="appoint.statekey" required></textarea>
+            </div>
+            <div class="col-md-6">
+                <label for="appointapplim" class="form-label">每条预约/报备处理数量限制</label>
+                <input type="number" class="form-control" id="appointapplim" v-model="appoint.applim" placeholder="3" required>
+            </div>
+            <div class="col-md-6">
+                <label for="appointtodaylim" class="form-label">每日每条预约/报备处理数量限制</label>
+                <input type="number" class="form-control" id="appointtodaylim" v-model="appoint.todaylim" placeholder="3" required>
+            </div>
+            <div class="col-md-6">
+                <label for="appointtotallim" class="form-label">每日预约/报备处理数量限制</label>
+                <input type="number" class="form-control" id="appointtotallim" v-model="appoint.totallim" placeholder="3" required>
+            </div>
+        </div>
+        <hr class="my-4">
+        <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter('appoint')">修改预约/报备配置</button>
+        <hr class="my-4">
         <h1 class="mb-3">操作</h1>
         <div class="row g-3">
             <div class="col-md-6">
@@ -227,6 +264,26 @@
         </div>
         <hr class="my-4">
         <button class="w-100 btn btn-outline-success btn-lg" type="button" @click="alter('operation')">修改操作配置</button>
+        <hr class="my-4">
+        <h1 class="mb-3">其他</h1>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <a class="btn btn-outline-dark" target="_blank" href="{{config('var.vhorizon')}}">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width: 30px;height: 35px;" class="logo"><path d="M5.26176342 26.4094389C2.04147988 23.6582233 0 19.5675182 0 15c0-4.1421356 1.67893219-7.89213562 4.39339828-10.60660172C7.10786438 1.67893219 10.8578644 0 15 0c8.2842712 0 15 6.71572875 15 15 0 8.2842712-6.7157288 15-15 15-3.716753 0-7.11777662-1.3517984-9.73823658-3.5905611zM4.03811305 15.9222506C5.70084247 14.4569342 6.87195416 12.5 10 12.5c5 0 5 5 10 5 3.1280454 0 4.2991572-1.9569336 5.961887-3.4222502C25.4934253 8.43417206 20.7645408 4 15 4 8.92486775 4 4 8.92486775 4 15c0 .3105915.01287248.6181765.03811305.9222506z" class="fill-primary"></path></svg>
+                    Horizon 任务队列
+                </a>
+                <a class="btn btn-outline-dark" target="_blank" href="{{config('var.vredis')}}" style="padding: 12px;">
+                    <img src="https://yono.top/redis/images/favicon.png">
+                    Redis 管理
+                </a>
+                <a class="btn btn-outline-dark" target="_blank" href="{{config('var.vbt')}}" style="padding: 8px;">
+                    <img src="https://yono.top:8888/static/favicon.ico">
+                    宝塔 管理
+                </a>
+
+            </div>
+        </div>
+        <hr class="my-4">
     </form>
 </div>
 

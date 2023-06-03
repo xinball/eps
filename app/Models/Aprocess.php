@@ -31,4 +31,13 @@ class Aprocess extends Model
     static public function getAprocessByAid($aid){
         return Aprocess::select("apid","user.uid as uid","uname","apinfo","aptime")->where('aid',$aid)->join('user','user.uid','aprocess.uid')->orderByDesc("apid")->get();
     }
+    static public function counttoday($aid,$uid){
+        return Aprocess::where('aid',$aid)->where('uid',$uid)->where('aptime','<',date("Y-m-d",strtotime("+1 day")))->where('aptime','>',date("Y-m-d",strtotime("today")))->count();
+    }
+    static public function countappoint($aid,$uid){
+        return Aprocess::where('aid',$aid)->where('uid',$uid)->count();
+    }
+    static public function counttotal($uid){
+        return Aprocess::where('uid',$uid)->where('aptime','<',date("Y-m-d",strtotime("+1 day")))->where('aptime','>',date("Y-m-d",strtotime("today")))->count();
+    }
 }

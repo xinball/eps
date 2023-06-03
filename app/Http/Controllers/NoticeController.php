@@ -22,7 +22,7 @@ class NoticeController extends Controller
         $sql = Notice::select('ntype',DB::raw("count('nid') as num"))->groupBy('ntype');
         $nums = $sql->get();
         $typenum=[
-            'sum'=>0,
+            ''=>0,
         ];
         foreach($nums as $num){
             $typenum[$num->ntype]=$num->num;
@@ -31,7 +31,7 @@ class NoticeController extends Controller
             if(!isset($typenum[$type])){
                 $typenum[$type]=0;
             }
-            $typenum['sum']+=$typenum[$type];
+            $typenum['']+=$typenum[$type];
         }
         return $typenum;
     } 

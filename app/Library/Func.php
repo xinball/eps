@@ -7,13 +7,23 @@ namespace App\Library;
 use Mail;
 use App\Models\User;
 use App\Mail\Usermail;
+use App\Mail\Appointmail;
 use Illuminate\Support\Facades\Redis;
 
 //Func主要用来发送邮件和检查格式是否正确
 class Func
 {
     static public function sendUserMail($user,$option){
-        Mail::to($user->uemail)->send(new Usermail($user,$option));
+        Mail::to($user->uemail)->queue((new Usermail($user,$option))->onQueue('user'));
+    }
+    static public function sendAppointMail($user,$option,$to=[],$cc=[],$bcc=[]){
+        Mail::to($to)->cc($cc)->bcc($bcc)->queue((new Appointmail($user,$option))->onQueue('appoint'));
+    }
+    static public function sendAppointDefMail($user,$option,$to=[],$cc=[],$bcc=[]){
+        Mail::to($to)->cc($cc)->bcc($bcc)->send((new Appointmail($user,$option)));
+    }
+    static public function sendLowMail($user,$option,$to=[],$cc=[],$bcc=[]){
+        Mail::to($to)->cc($cc)->bcc($bcc)->send((new Appointmail($user,$option)));
     }
 
     //邮箱语法检查

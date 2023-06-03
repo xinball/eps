@@ -45,8 +45,9 @@ class Controller extends BaseController
     public $key="";
     public $akey="";
 
-    public function __construct(Request $request)
+    public function __construct(Request $request=null)
     {
+        $this->initConfig();
         $this->result=new Result();
         if(isset($_COOKIE['result'])){
             $result = json_decode($_COOKIE['result']);
@@ -61,7 +62,6 @@ class Controller extends BaseController
             $this->result->status=$request->result->status;
             $this->result->message=$request->result->message;
         }
-        $this->initConfig();
         //登录认证
         //如果长时间不操作ttl会减少，初始为600，低于300时操作的话会再加600，减为0则退出，无法操作
         if($this->authAdmin()){
@@ -88,6 +88,11 @@ class Controller extends BaseController
                 setcookie("uid",$this->uid,$expire,"/");
                 setcookie($this->key,$token,$expire,"/");
                 Redis::setex($this->key,$expire-time(),$token);
+            }
+        }
+        if($this->config_basic['status']==='0'){
+            if($this->ladmin===null&&$this->getCurrentControllerName()!=='App\Http\Controllers\AdminController'&&$this->getCurrentControllerName()!=='App\Http\Controllers\NoticeController'){
+                abort(403);
             }
         }
     }
@@ -541,6 +546,7 @@ class Controller extends BaseController
         $this->config_appoint['statekey']=json_decode($this->config_appoint['statekey'],true);
         $this->config_appoint['state']=json_decode($this->config_appoint['state'],true);
         $this->config_appoint['processtype']=json_decode($this->config_appoint['processtype'],true);
+        $this->config_appoint['dis']=json_decode($this->config_appoint['dis'],true);
         view()->share('config_appoint',$this->config_appoint);
 
         view()->share('config_operationpre',$this->config_operation);
@@ -597,5 +603,37 @@ class Controller extends BaseController
         $this->infoMsg="两次预约处理操作间隔时间直接不能少于".$this->config_basic['apttl']."s！";
         $this->getResult();
         return false;
+    }
+    /**
+     * 获取当前控制器名
+     *
+     * @return string
+     */
+    public function getCurrentControllerName()
+    {
+        return $this->getCurrentAction()['controller'];
+    }
+
+    /**
+     * 获取当前方法名
+     *
+     * @return string
+     */
+    public function getCurrentMethodName()
+    {
+        return $this->getCurrentAction()['method'];
+    }
+
+    /**
+     * 获取当前控制器与方法
+     *
+     * @return array
+     */
+    public function getCurrentAction()
+    {
+        $action = \Route::current()->getActionName();
+        list($class, $method) = explode('@', $action);
+
+        return ['controller' => $class, 'method' => $method];
     }
 }

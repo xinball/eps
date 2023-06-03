@@ -841,7 +841,7 @@ class UserController extends Controller
         $sql = User::select('utype',DB::raw("count('uid') as num"))->groupBy('utype');
         $nums = $sql->get();
         $typenum=[
-            'sum'=>0,
+            ''=>0,
         ];
         foreach($nums as $num){
             $typenum[$num->utype]=$num->num;
@@ -850,7 +850,7 @@ class UserController extends Controller
             if(!isset($typenum[$type])){
                 $typenum[$type]=0;
             }
-            $typenum['sum']+=$typenum[$type];
+            $typenum['']+=$typenum[$type];
         }
         return $typenum;
     }

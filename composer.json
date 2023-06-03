@@ -17,6 +17,7 @@
         "guzzlehttp/guzzle": "^7.4",
         "jenssegers/agent": "^2.6",
         "laravel/framework": "^7.29",
+        "laravel/horizon": "^4.3",
         "laravel/tinker": "^2.5",
         "mews/purifier": "^3.3",
         "zys/zipper": "^1.0"
