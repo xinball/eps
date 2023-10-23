@@ -52,9 +52,9 @@ return [
             'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'eps'),
-            'username' => env('DB_USERNAME', 'eps'),
-            'password' => env('DB_PASSWORD', 'eps2023'),
+            'database' => env('DB_DATABASE', ''),
+            'username' => env('DB_USERNAME', ''),
+            'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
@@ -131,11 +131,12 @@ return [
         ],
 
         'default' => [
-            'url' => env('REDIS_URL','127.0.0.1'),
+            // 'url' => env('REDIS_URL','127.0.0.1'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
             'password' => env('REDIS_PASSWORD', null),
             'port' => env('REDIS_PORT', 6379),
-            'database' => env('REDIS_DB', 0),
+            // 'database' => env('REDIS_DB', 14),
+            'database' => 14,
         ],
 
         'cache' => [
@@ -143,7 +144,7 @@ return [
             'host' => env('REDIS_HOST', '127.0.0.1'),
             'password' => env('REDIS_PASSWORD', null),
             'port' => env('REDIS_PORT', '6379'),
-            'database' => env('REDIS_CACHE_DB', '1'),
+            'database' => env('REDIS_CACHE_DB', '14'),
         ],
 
     ],
